@@ -3,13 +3,32 @@
 <meta name="description" content="리그 오브 레전드 비공식 피어리스 밴픽 · 협곡 2D 실험 시뮬레이터">
 <title>협곡 연구소 | Fearless Draft & Rift Lab</title><link rel="stylesheet" href="./styles.css"></head>
 <body><div class="shell"><header><div class="head-row">
-<div class="brand"><div class="logo">⚔</div><div><h1>협곡 연구소 <span class="sub">v0.3</span></h1><div class="sub">FEARLESS DRAFT · SUMMONER'S RIFT LAB</div></div></div>
+<div class="brand"><div class="logo">⚔</div><div><h1>협곡 연구소 <span class="sub">v0.4</span></h1><div class="sub">FEARLESS DRAFT · SUMMONER'S RIFT LAB</div></div></div>
 <nav class="topnav"><button class="tab active" id="tabDraft">피어리스 밴픽</button><button class="tab" id="tabRift">협곡 시뮬</button></nav>
 </div></header>
 <section class="view active" id="draftView">
 <div class="toolbar"><label>시리즈 <select id="seriesLength"><option value="3">BO3</option><option value="5" selected>BO5</option></select></label><div id="gameTabs" class="series-tabs"></div>
 <button id="undoDraft">↶ 되돌리기</button><button id="nextGame" class="primary">다음 세트</button>
 <button id="resetSeries" class="warn">시리즈 초기화</button><button id="exportDraft">밴픽 JSON 저장</button></div>
+<section class="panel auto-panel" id="autoPanel">
+<div class="auto-heading"><div><h2 style="margin:0">AI 코치 자동 밴픽 <span class="pill flex">2026 월즈 메타</span></h2><div class="sub">LCK·LPL 8팀 가상 매치 · 실제 픽/밴 빈도 + 팀 성향 + 조합 규칙 기반 휴리스틱</div></div><div class="pill unknown" id="autoDataTag">26.20 · 자료 기준 2026-11-03</div></div>
+<div class="auto-grid">
+<label>블루 팀<select id="autoBlue"><option value="GEN">GEN · Gen.G</option><option value="T1">T1</option><option value="HLE">HLE</option><option value="DK">DK</option><option value="BLG">BLG</option><option value="TES">TES</option><option value="IG">IG</option><option value="AL">AL</option></select></label>
+<label>레드 팀<select id="autoRed"><option value="BLG">BLG</option><option value="GEN">GEN · Gen.G</option><option value="T1">T1</option><option value="HLE">HLE</option><option value="DK">DK</option><option value="TES">TES</option><option value="IG">IG</option><option value="AL">AL</option></select></label>
+<label>전술 모드<select id="autoMode"><option value="balanced">혼합형 · 실제 메타 우선</option><option value="tempo">가속 · 초반 주도권</option><option value="control">브레이크 · 대응/교전</option><option value="scaling">성장 · 후반 자원</option></select></label>
+<label>변동성<select id="autoVariance"><option value="0">0 · 동일한 선택</option><option value="0.15" selected>15 · 약간의 변동</option><option value="0.35">35 · 다양하게</option><option value="0.65">65 · 실험적</option></select></label>
+<label>난수 시드<input id="autoSeed" type="number" value="2026" min="1" max="999999999"></label>
+</div>
+<div class="toolbar" style="margin:12px 0 0">
+<button id="autoOne">AI 한 턴</button><button id="autoGame" class="primary">현재 세트 자동 완성</button><button id="autoSeries">BO 전체 자동 밴픽</button><button id="autoReset" class="ghost">현재 설정으로 새로 시작</button>
+</div>
+<div id="autoSummary" class="auto-summary sub">팀과 조건을 정하고 자동 밴픽을 실행해.</div>
+<details class="auto-method"><summary>분석 근거 및 예측의 한계</summary>
+<p class="help">2026 월즈 패치 26.20의 공개 픽·밴 빈도, LCK 팀의 드래프트 성향 분석, 선수별 풀 자료를 참고한 <b>가상 휴리스틱</b>이야. 영상의 정확한 음성 설명은 확인하지 못했으며 바르암의 색상 분류만 사용자 자료로 반영했어. 김순 영상은 정확히 확인되지 않아 분석을 인용하지 않았어.</p>
+<p class="help">팀별 선호도는 공개 기록을 바탕으로 한 수동 예시 가중치라서 선수와 감독의 실제 선택을 그대로 예측하지 않아. 승률, 경기 결과, 정글 주도권은 생성하지 않고 밴픽 선택 이유만 제공해.</p>
+<div class="sources"><a target="_blank" rel="noopener noreferrer" href="https://chaincc.lol/free/leagues/WLDs/2026">월즈 2026 밴픽 빈도</a><a target="_blank" rel="noopener noreferrer" href="https://bpdraft.com/player_preferences.en">선수 챔피언 풀</a><a target="_blank" rel="noopener noreferrer" href="https://note.com/draftlabjp/n/n857363b9e2d0?hl=ko">LCK 4팀 드래프트 성향</a><a target="_blank" rel="noopener noreferrer" href="https://lolesports.com/ko-KR/news/worlds-2026-primer">월즈 공식 일정·진출팀</a></div>
+</details>
+</section>
 <div class="draft-layout">
 <section class="panel team"><div class="team-heading" style="color:var(--blue)">BLUE <span id="blueCount" class="sub"></span></div><div id="blueSlots"></div><h3>밴</h3><div id="blueBans" class="ban-strip"></div></section>
 <section class="panel center"><h3>현재 밴픽</h3><div class="current"><div class="phase" id="phaseLabel">준비 중</div><div class="turn" id="turnLabel">-</div><div class="team-color" id="pickHint">챔피언을 선택하세요</div></div>
@@ -40,4 +59,4 @@
 </div>
 </section>
 <footer class="footer">비공식 팬 제작 학습 도구 · 챔피언 아이콘/명단은 Riot Data Dragon 제공. 밴픽 규칙은 대회 형식을 참고했고, 협곡 계산은 실험용 근사치야.<br>Rift Lab isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</footer>
-</div><script src="./data.js"></script><script src="./app.js"></script><script src="./rift.js"></script></body></html>
+</div><script src="./data.js"></script><script src="./app.js"></script><script src="./rift.js"></script><script src="./auto-draft.js"></script></body></html>
