@@ -263,7 +263,7 @@ function draw(){
  ctx.clearRect(0,0,900,900);drawBase();drawCamps();drawTowers();drawUnits();
  var s=selected();if(s){ctx.beginPath();ctx.arc(s.x,s.y,(s.r||15)+8,0,2*Math.PI);ctx.strokeStyle="#ffe99b";ctx.lineWidth=2;ctx.stroke();}
 }
-function timeString(s){var n=Math.floor(s);return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");}
+function timeString(s){var n=Math.floor(s+0.0001);return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");}
 function refreshUI(){
  if(!sim)return;
  $("gameClock").textContent=timeString(sim.time);
