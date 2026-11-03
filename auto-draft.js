@@ -156,7 +156,7 @@ function pickCandidate(snapshot,cfg,step){
 function banCandidate(snapshot,cfg,step){
  var team=step.team,opp=team==="blue"?"red":"blue",oppP=TEAM[cfg[opp]],self=TEAM[cfg[team]],g=snapshot.currentIndex,n=snapshot.games[g].actions.length;
  var oppUsed=assignedRoles(snapshot,opp);
- var pool=[...new Set(Object.keys(TOP_BANS).concat(Object.keys(TOP_PICKS),oppP.bans,self.bans,...ROLES.flatMap(function(r){return oppP.focus[r].slice(0,5);})))];
+ var pool=[...new Set(Object.keys(TOP_BANS).concat(Object.keys(TOP_PICKS),oppP.bans,self.bans,...ROLES.flatMap(function(r){return oppP.focus[r].concat(POOLS[r]);})))];
  var cand=[];
  pool.forEach(function(id){
  if(!available(snapshot,id))return;
