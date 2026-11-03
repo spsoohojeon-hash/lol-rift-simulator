@@ -116,10 +116,22 @@ function allyRolePriority(role,stepIndex){
  return {TOP:8,JUNGLE:1,MID:7,ADC:2,SUPPORT:2}[role];
 }
 function modeBonus(cfg,id,role,snapshot,team){
- if(cfg.mode!=="balanced"){return PROFILES[cfg.mode].has(id)?12:0;}
+ var color=core.classifyChampion?core.classifyChampion(id,role):"unknown";
+ var enemy=friendlyRoster(snapshot,team==="blue"?"red":"blue");
+ var enemyAccel=enemy.filter(function(x){return core.classifyChampion&&core.classifyChampion(x.id,x.role)==="accel";}).length;
+ var sourceBonus=0;
+ if(cfg.mode==="tempo"&&color==="accel")sourceBonus+=8;
+ if(cfg.mode==="control"&&color==="brake")sourceBonus+=8;
+ if(cfg.mode==="scaling"&&color==="growth")sourceBonus+=8;
+ if(color==="flex"){
+   if(cfg.mode==="control"&&enemyAccel>=2)sourceBonus+=5;
+   if(cfg.mode==="tempo"&&enemyAccel<2)sourceBonus+=5;
+ }
+ // Color categories are a provisional video transcription, so they are a small bonus.
+ if(cfg.mode!=="balanced")return (PROFILES[cfg.mode].has(id)?12:0)+sourceBonus;
  var x=TEAM[cfg[team]];
- if(x.region==="LPL")return PROFILES.tempo.has(id)?4:0;
- return PROFILES.control.has(id)||PROFILES.scaling.has(id)?3:0;
+ return (x.region==="LPL"&&PROFILES.tempo.has(id)?4:0)
+   +(x.region==="LCK"&&(PROFILES.control.has(id)||PROFILES.scaling.has(id))?3:0);
 }
 function pickCandidate(snapshot,cfg,step){
  var team=step.team,opp=team==="blue"?"red":"blue",ally=friendlyRoster(snapshot,team),enemy=friendlyRoster(snapshot,opp);
