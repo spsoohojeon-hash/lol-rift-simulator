@@ -38,12 +38,21 @@ function draftComplete(){return currentGame().actions.length===STEPS.length;}
 function isUnavailable(id){return previousLocks().has(id)||usedThisGame().has(id);}
 function createText(tag,cls,content){var n=document.createElement(tag);if(cls)n.className=cls;n.textContent=content;return n;}
 function setMsg(str){$("pickHint").textContent=str;}
-function perform(id){
- if(!isCurrentGame()){setMsg("과거 세트는 열람만 가능해");return;}
+function perform(id,extra,quiet){
+ if(!isCurrentGame()){if(!quiet)setMsg("과거 세트는 열람만 가능해");return false;}
  var g=currentGame(),step=STEPS[g.actions.length];
- if(!step||isUnavailable(id))return;
- g.actions.push({type:step.type,team:step.team,id:id});
- save();renderDraft();
+ if(!step||isUnavailable(id))return false;
+ var action={type:step.type,team:step.team,id:id};
+ if(extra&&extra.reason)action.reason=String(extra.reason).slice(0,220);
+ if(extra&&extra.source)action.source=String(extra.source);
+ if(extra&&extra.role&&step.type==="pick"){
+   action.role=extra.role;
+   var prior=g.actions.filter(function(a){return a.type==="pick"&&a.team===step.team;}).length;
+   g.roles[step.team][prior]=extra.role;
+ }
+ g.actions.push(action);
+ if(!quiet){save();renderDraft();}
+ return true;
 }
 function slotCard(team,id,index,finished){
  var slot=createText("div","slot","");
@@ -88,7 +97,7 @@ function renderStatus(){
  setMsg(isCurrentGame()?"현재 "+(g.actions.length+1)+"번째 순서 · 챔피언을 클릭하면 즉시 확정돼.":"지난 세트 기록 (읽기 전용)");
  }
  var history=$("draftLog");history.replaceChildren();
- g.actions.slice(-7).forEach(function(a,i){var p=createText("div","history-item",(a.team==="blue"?"B":"R")+(a.type==="pick"?" 픽 ":" 밴 ")+champ(a.id).name);history.append(p);});
+ g.actions.slice(-7).forEach(function(a,i){var p=createText("div","history-item",(a.team==="blue"?"B":"R")+(a.type==="pick"?" 픽 ":" 밴 ")+champ(a.id).name+(a.role?" · "+a.role:"")+(a.reason?" — "+a.reason:""));history.append(p);});
  $("undoDraft").disabled=g.actions.length===0||!isCurrentGame();
 }
 function renderComposition(){
@@ -178,7 +187,17 @@ async function fetchChampions(){
 }
 function init(){
  eventHandlers();
- window.RiftCore={champ:function(id){return champ(id);},icon:icon,champions:function(){return champions;},getDraftPicks:function(){var g=currentGame();return ["blue","red"].flatMap(function(team){return picks(g,team).map(function(id,i){return {id:id,team:team,lane:g.roles[team][i]||lanes[i]};});});},draftComplete:draftComplete,switchTab:switchTab};
+ window.RiftCore={
+ champ:function(id){return champ(id);},icon:icon,champions:function(){return champions;},
+ getDraftPicks:function(){var g=currentGame();return ["blue","red"].flatMap(function(team){return picks(g,team).map(function(id,i){return {id:id,team:team,lane:g.roles[team][i]||lanes[i]};});});},
+ draftComplete:draftComplete,switchTab:switchTab,
+ autoSnapshot:function(){return {seriesLength:state.seriesLength,currentIndex:state.currentIndex,gameCount:state.games.length,games:JSON.parse(JSON.stringify(state.games)),step:STEPS[currentGame().actions.length]||null,allSteps:STEPS.slice(),locked:Array.from(previousLocks()),used:Array.from(usedThisGame()),isActive:isCurrentGame(),complete:draftComplete()};},
+ autoApply:function(id,extra,quiet){return perform(id,extra,!!quiet);},
+ autoCommit:function(){save();renderDraft();},
+ autoNextGame:function(quiet){if(!isCurrentGame()||!draftComplete()||state.games.length>=state.seriesLength)return false;state.games.push(emptyGame());state.currentIndex=state.games.length-1;if(!quiet){save();renderDraft();}return true;},
+ autoSetSeries:function(n){if(![3,5].includes(+n))return false;state=defaults();state.seriesLength=+n;save();renderDraft();return true;},
+ autoRewind:function(){if(!isCurrentGame()||!currentGame().actions.length)return false;currentGame().actions.pop();save();renderDraft();return true;}
+};
  renderDraft();renderCategoryControls();if(window.RiftLab)window.RiftLab.init(window.RiftCore);
  fetchChampions();
 }
