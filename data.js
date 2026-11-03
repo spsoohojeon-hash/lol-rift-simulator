@@ -86,19 +86,20 @@ window.LOL_DATA = Object.freeze({
     ],
     "flex": [
       "Ashe",
-      "Sivir",
       "Kalista",
       "Xayah"
     ],
     "brake": [
       "Jhin",
       "MissFortune",
-      "Ziggs"
+      "Ziggs",
+      "Corki"
     ],
     "growth": [
       "Kaisa",
       "Zeri",
-      "Aphelios"
+      "Aphelios",
+      "Sivir"
     ],
     "tank": []
   },
