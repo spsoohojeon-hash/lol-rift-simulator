@@ -190,7 +190,7 @@ function init(){
  window.RiftCore={
  champ:function(id){return champ(id);},icon:icon,champions:function(){return champions;},
  getDraftPicks:function(){var g=currentGame();return ["blue","red"].flatMap(function(team){return picks(g,team).map(function(id,i){return {id:id,team:team,lane:g.roles[team][i]||lanes[i]};});});},
- draftComplete:draftComplete,switchTab:switchTab,
+ draftComplete:draftComplete,switchTab:switchTab,classifyChampion:function(id,role){return getClass(id,role);},
  autoSnapshot:function(){return {seriesLength:state.seriesLength,currentIndex:state.currentIndex,gameCount:state.games.length,games:JSON.parse(JSON.stringify(state.games)),step:STEPS[currentGame().actions.length]||null,allSteps:STEPS.slice(),locked:Array.from(previousLocks()),used:Array.from(usedThisGame()),isActive:isCurrentGame(),complete:draftComplete()};},
  autoApply:function(id,extra,quiet){return perform(id,extra,!!quiet);},
  autoCommit:function(){save();renderDraft();},
