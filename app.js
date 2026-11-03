@@ -172,7 +172,7 @@ async function fetchChampions(){
  var res=await fetch("https://ddragon.leagueoflegends.com/cdn/"+version+"/data/ko_KR/champion.json");
  if(!res.ok)throw Error("Champions HTTP "+res.status);
  var list=await res.json();
- champions=Object.values(list.data).map(function(x){return {id:x.id,name:x.name,english:x.id,image:x.image.full};}).sort(function(a,b){return a.name.localeCompare(b.name,"ko");});
+ champions=Object.values(list.data).map(function(x){return {id:x.id,name:x.name,english:x.id,image:x.image.full,stats:x.stats||null,tags:x.tags||[]};}).sort(function(a,b){return a.name.localeCompare(b.name,"ko");});
  renderDraft();renderCategoryControls();if(window.RiftLab)window.RiftLab.refreshChampions();
  }catch(e){console.warn("Data Dragon unavailable, using fallback list",e);$("catalogCount").textContent="오프라인 명단 사용 · 이미지 일부 제한"; }
 }
