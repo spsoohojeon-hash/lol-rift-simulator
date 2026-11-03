@@ -43,7 +43,10 @@ function teamLabel(team){return team==="blue"?"블루":team==="red"?"레드":"�
 function addChampion(id,team,lane,x,y,level){
  var lv=+level||1,c=core.champ(id);
  if(sim.units.filter(function(u){return u.type==="champ";}).length>=10){log("챔피언은 최대 10명까지 배치할 수 있어.");return;}
- var unit={id:nextId(),type:"champ",champId:id,name:c.name,team:team,lane:lane,x:x,y:y,level:lv,hp:650+(lv-1)*98,maxHp:650+(lv-1)*98,attack:61+(lv-1)*4.5,armor:36+(lv-1)*3,range:80,interval:1.15,cooldown:0,speed:120,r:19,cc:[],moveTo:null,targetId:null,deathTime:null};
+ var st=c.stats||{},growth=(lv-1)*(.7025+.0175*(lv-1));
+ var hp=Math.round((st.hp||650)+(st.hpperlevel||98)*growth),ad=(st.attackdamage||61)+(st.attackdamageperlevel||4.5)*growth;
+ var armor=(st.armor||36)+(st.armorperlevel||3)*growth,atkSpeed=(st.attackspeed||.72)*(1+(st.attackspeedperlevel||2)*growth/100);
+ var unit={id:nextId(),type:"champ",champId:id,name:c.name,team:team,lane:lane,x:x,y:y,level:lv,hp:hp,maxHp:hp,attack:ad,armor:armor,range:Math.max(22,Math.min(112,(st.attackrange||500)*.16)),interval:Math.max(.45,1/atkSpeed),cooldown:0,speed:Math.max(80,Math.min(150,(st.movespeed||350)*.34)),r:19,cc:[],moveTo:null,targetId:null,deathTime:null};
  sim.units.push(unit);sim.selectedId=unit.id;log(teamLabel(team)+" "+unit.name+" 배치 ("+lane+")");refreshUI();return unit;
 }
 function makeMinion(team,lane,kind,manualPoint,offset){
