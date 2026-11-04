@@ -3,8 +3,8 @@
 <meta name="description" content="리그 오브 레전드 비공식 피어리스 밴픽 · 협곡 2D 실험 시뮬레이터">
 <title>협곡 연구소 | Fearless Draft & Rift Lab</title><link rel="stylesheet" href="./styles.css"></head>
 <body><div class="shell"><header><div class="head-row">
-<div class="brand"><div class="logo">⚔</div><div><h1>협곡 연구소 <span class="sub">v0.4</span></h1><div class="sub">FEARLESS DRAFT · SUMMONER'S RIFT LAB</div></div></div>
-<nav class="topnav"><button class="tab active" id="tabDraft">피어리스 밴픽</button><button class="tab" id="tabRift">협곡 시뮬</button></nav>
+<div class="brand"><div class="logo">⚔</div><div><h1>협곡 연구소 <span class="sub">v0.5</span></h1><div class="sub">FEARLESS DRAFT · SUMMONER'S RIFT LAB</div></div></div>
+<nav class="topnav"><button class="tab active" id="tabDraft">피어리스 밴픽</button><button class="tab" id="tabAnalysis">라인·정글 분석</button><button class="tab" id="tabRift">협곡 시뮬</button></nav>
 </div></header>
 <section class="view active" id="draftView">
 <div class="toolbar"><label>시리즈 <select id="seriesLength"><option value="3">BO3</option><option value="5" selected>BO5</option></select></label><div id="gameTabs" class="series-tabs"></div>
@@ -41,6 +41,28 @@
 <div id="championGrid" class="catalog-list"></div></section>
 <details class="panel reference"><summary>가속도 분류 출처·확인 상태</summary><p class="help">색상 기준: 빨강=가속, 보라=상대에 따라 가속/브레이크 결정, 파랑=브레이크, 노랑=성장, 초록=탱. 이전 자동 매핑은 잘못된 챔피언 식별이 있어 폐기했어. 지금 분류는 원본 초상화에서 상대적으로 뚜렷하게 식별한 일부 챔피언만 잠정 표시하며 미분류가 정상 상태야. 경기별 빌드에 따라 분류가 달라지는 챔피언은 확정하지 않았어.</p><div class="toolbar"><label>수동 교정 대상 <select id="categoryChampion"></select></label><label>라인 <select id="categoryLane"><option>TOP</option><option>JUNGLE</option><option>MID</option><option>ADC</option><option>SUPPORT</option></select></label><label>분류 <select id="categoryChoice"><option value="unknown">미확인</option><option value="accel">가속</option><option value="flex">상대 의존</option><option value="brake">브레이크</option><option value="growth">성장</option><option value="tank">탱</option></select></label><button id="saveCategory">분류 수정 저장</button></div><div id="categorySummary" class="classified"></div></details>
 </section>
+<section class="view" id="analysisView">
+<div class="panel analysis-panel">
+<div class="analysis-header">
+<div><h2>운영 분석 실험실 <span class="pill flex">v0.5</span></h2>
+<p class="sub">현재 세트 양 팀의 챔피언을 읽어 라인 주도권·정글 이동 시간·합류 교전 구도를 비교해. 밴픽 완료 후 사용하는 걸 권장해.</p></div>
+<div class="pill unknown">자체 휴리스틱 · 승률/실제 솔랭 통계 아님</div></div>
+<div class="analysis-controls">
+<label>블루 정글 동선<select id="anaBlueRoute"><option value="full-top">6캠프 → 탑</option><option value="full-bot">6캠프 → 바텀</option><option value="three-top">3캠프 → 탑</option><option value="three-mid">3캠프 → 미드</option><option value="three-bot">3캠프 → 바텀</option></select></label>
+<label>레드 정글 동선<select id="anaRedRoute"><option value="full-top">6캠프 → 탑</option><option value="full-bot">6캠프 → 바텀</option><option value="three-top">3캠프 → 탑</option><option value="three-mid">3캠프 → 미드</option><option value="three-bot">3캠프 → 바텀</option></select></label>
+<label>교전 라인<select id="anaFocus"><option value="TOP">TOP 2대2</option><option value="MID" selected>MID 2대2</option><option value="BOT">BOT 3대3</option></select></label>
+<label>교전 레벨<select id="anaLevel"><option value="3" selected>3레벨</option><option value="6">6레벨</option><option value="11">11레벨</option></select></label>
+</div>
+<div class="toolbar" style="margin-top:12px"><button id="anaRefresh" class="primary">현재 밴픽 분석</button><button id="anaShowMap">정글 동선 지도에 표시</button><button id="anaStageFight">선택한 교전 협곡에 배치</button><button id="anaExport">분석 JSON 저장</button></div>
+<p class="help">정글 합류 시각은 모델의 평균 캠프 처리 시간·지도 이동 거리로 계산한 근사값이고, 매치업 지수는 직접 설계한 챔피언 특징값에서 계산돼. QWER·아이템·룬·CS·선수 숙련도·실제 갱킹 성공률은 아직 반영하지 않아.</p>
+</div>
+<div class="analysis-grid">
+<section class="panel"><h3>라인 주도권 비교</h3><div id="anaLanes" class="analysis-result"></div></section>
+<section class="panel"><h3>정글 동선과 합류 타이밍</h3><div id="anaRoutes" class="analysis-result"></div></section>
+<section class="panel"><h3>교전 구도 비교</h3><div id="anaFight" class="analysis-result"></div></section>
+</div>
+<div class="panel" style="margin-top:12px"><h3>모델 해석 주의사항</h3><div id="anaNotes" class="help"></div></div>
+</section>
 <section class="view" id="riftView">
 <div class="toolbar"><button id="transferDraft" class="primary">현재 밴픽 10명 배치</button><button id="playPause">▶ 재생</button><button id="step5">+5초</button><button id="step30">+30초</button><label>속도 <select id="speed"><option value="0.5">0.5배</option><option value="1" selected>1배</option><option value="2">2배</option><option value="4">4배</option><option value="8">8배</option></select></label><button id="spawnWave">미니언 생성</button><button id="clearMap" class="warn">맵 초기화</button></div>
 <div class="rift-layout">
@@ -59,4 +81,4 @@
 </div>
 </section>
 <footer class="footer">비공식 팬 제작 학습 도구 · 챔피언 아이콘/명단은 Riot Data Dragon 제공. 밴픽 규칙은 대회 형식을 참고했고, 협곡 계산은 실험용 근사치야.<br>Rift Lab isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</footer>
-</div><script src="./data.js"></script><script src="./app.js"></script><script src="./rift.js"></script><script src="./auto-draft.js"></script></body></html>
+</div><script src="./data.js"></script><script src="./app.js"></script><script src="./rift.js"></script><script src="./auto-draft.js"></script><script src="./analysis-engine.js"></script><script src="./analysis-ui.js"></script></body></html>
