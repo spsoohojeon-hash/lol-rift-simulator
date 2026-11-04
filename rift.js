@@ -12,10 +12,10 @@ var CC_DISABLE=new Set(["stun","knockup","suppress","fear","charm"]);
 var CC_ROOT=new Set(["stun","root","knockup","suppress","fear","charm"]);
 var colors={blue:"#63b6ff",red:"#ff7785",neutral:"#d9bd77"};
 var campsTemplate=[
-{name:"블루 버프",x:280,y:618,hp:1500},{name:"두꺼비",x:198,y:548,hp:1000},{name:"늑대",x:315,y:532,hp:950},
-{name:"레드 버프",x:542,y:724,hp:1500},{name:"칼날부리",x:508,y:625,hp:950},{name:"돌거북",x:670,y:744,hp:1300},
-{name:"블루 버프",x:622,y:273,hp:1500},{name:"두꺼비",x:705,y:342,hp:1000},{name:"늑대",x:580,y:358,hp:950},
-{name:"레드 버프",x:356,y:174,hp:1500},{name:"칼날부리",x:390,y:276,hp:950},{name:"돌거북",x:238,y:157,hp:1300},
+{name:"블루 버프",x:280,y:618,hp:1500,at:55},{name:"두꺼비",x:198,y:548,hp:1000,at:67},{name:"늑대",x:315,y:532,hp:950,at:55},
+{name:"레드 버프",x:542,y:724,hp:1500,at:55},{name:"칼날부리",x:508,y:625,hp:950,at:55},{name:"돌거북",x:670,y:744,hp:1300,at:67},
+{name:"블루 버프",x:622,y:273,hp:1500,at:55},{name:"두꺼비",x:705,y:342,hp:1000,at:67},{name:"늑대",x:580,y:358,hp:950,at:55},
+{name:"레드 버프",x:356,y:174,hp:1500,at:55},{name:"칼날부리",x:390,y:276,hp:950,at:55},{name:"돌거북",x:238,y:157,hp:1300,at:67},
 {name:"드래곤(모형)",x:676,y:460,hp:4600,at:300},{name:"바론(모형)",x:230,y:426,hp:8000,at:1200}];
 function dist(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);}
 function pathLength(lane){var pts=PATH[lane]||PATH.MID,len=0;for(var i=1;i<pts.length;i++)len+=dist({x:pts[i][0],y:pts[i][1]},{x:pts[i-1][0],y:pts[i-1][1]});return len;}
@@ -35,7 +35,7 @@ function initialState(){
  var p=pointAt(lane,len*o.at);sim.towers.push({id:nextId(),type:"tower",team:o.team,name:lane+" 포탑",lane:lane,x:p.x,y:p.y,hp:2100,maxHp:2100,range:103,attack:93,interval:.95,cooldown:0,r:18});
  });
  });
- campsTemplate.forEach(function(c){sim.camps.push({id:nextId(),type:"monster",team:"neutral",name:c.name,x:c.x,y:c.y,hp:c.hp,maxHp:c.hp,range:45,attack:32,interval:1.5,cooldown:0,availableAt:c.at||90,r:c.name.includes("버프")?16:13});});
+ campsTemplate.forEach(function(c){sim.camps.push({id:nextId(),type:"monster",team:"neutral",name:c.name,x:c.x,y:c.y,hp:c.hp,maxHp:c.hp,range:45,attack:32,interval:1.5,cooldown:0,availableAt:c.at||55,r:c.name.includes("버프")?16:13});});
  log("협곡 실험 준비 완료. 실제 게임 수치와 지형은 근사 모델이야.");
 }
 function log(message){sim.logs.unshift({time:Math.floor(sim.time),message:message});sim.logs=sim.logs.slice(0,50);}
@@ -92,7 +92,7 @@ function attack(u,v){
  v.hp=Math.max(0,v.hp-damage);u.cooldown=u.interval;
  if(v.hp===0){
  v.deathTime=sim.time;
- if(v.type==="monster"){v.availableAt=sim.time+180;log(u.name+" → "+v.name+" 처치 (모형 리스폰 "+180+"초)");}
+ if(v.type==="monster"){var delay=v.name.includes("버프")?300:v.name.includes("드래곤")?300:v.name.includes("바론")?360:135;v.availableAt=sim.time+delay;log(u.name+" → "+v.name+" 처치 (임시 리스폰 "+delay+"초)");}
  else log(u.name+" → "+v.name+" 처치");
  if(v.id===sim.selectedId)refreshUI();
  }
@@ -134,7 +134,7 @@ function updateUnit(u,dt){
 }
 function tick(dt){
  sim.time+=dt;
- while(sim.time>=65+sim.waveNumber*30){spawnWave(true);}
+ while(sim.time>=30+sim.waveNumber*30){spawnWave(true);}
  sim.camps.forEach(function(c){if(c.hp<=0&&sim.time>=c.availableAt){c.hp=c.maxHp;c.cooldown=0;log(c.name+" 재생성 (근사)");}});
  var order=sim.units.concat(sim.towers,sim.camps);
  order.forEach(function(u){
@@ -360,7 +360,7 @@ function stageSkirmish(params){
  var arrival=Math.max(180,+((params.routes||{}).blue||{}).arrivalSec||180,+((params.routes||{}).red||{}).arrivalSec||180);
  sim.time=arrival;
  // Avoid generating all prior lane waves when starting a standalone skirmish at a late timestamp.
- sim.waveNumber=Math.max(0,Math.floor((arrival-65)/30)+1);
+ sim.waveNumber=Math.max(0,Math.floor((arrival-30)/30)+1);
  blue.forEach(function(x,i){addChampion(x.id,"blue",lane,mid[0]-88-i*8,mid[1]+(i-1)*28,level);});
  red.forEach(function(x,i){addChampion(x.id,"red",lane,mid[0]+88+i*8,mid[1]+(i-1)*28,level);});
  sim.units.forEach(function(u){
