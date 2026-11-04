@@ -167,11 +167,13 @@ function eventHandlers(){
  $("saveCategory").onclick=function(){var key=$("categoryChampion").value+"|"+$("categoryLane").value;state.overrides[key]=$("categoryChoice").value;save();renderDraft();setMsg("분류 수정 저장: "+champ($("categoryChampion").value).name);};
 }
 function switchTab(which){
- $("draftView").classList.toggle("active",which==="draft");
- $("riftView").classList.toggle("active",which==="rift");
- $("tabDraft").classList.toggle("active",which==="draft");
- $("tabRift").classList.toggle("active",which==="rift");
+ ["draft","analysis","rift"].forEach(function(tab){
+  var title=tab[0].toUpperCase()+tab.slice(1);
+  $(tab+"View").classList.toggle("active",which===tab);
+  $("tab"+title).classList.toggle("active",which===tab);
+ });
  if(which==="rift"&&window.RiftLab)window.RiftLab.refresh();
+ if(which==="analysis"&&window.RiftOperations)window.RiftOperations.refresh();
 }
 async function fetchChampions(){
  try{
