@@ -30,3 +30,27 @@ header{border-bottom:1px solid #253957;padding:20px 0;margin-bottom:18px}.head-r
 .auto-summary .trace div{padding:4px 0;border-bottom:1px dashed #344b65}
 @media(max-width:1000px){.auto-grid{grid-template-columns:repeat(3,minmax(120px,1fr))}}
 @media(max-width:610px){.auto-grid{grid-template-columns:repeat(2,minmax(118px,1fr))}.auto-summary .split{grid-template-columns:1fr}}
+
+
+/* v0.5 Lane & jungle operating-room */
+.analysis-panel{background:linear-gradient(135deg,#15283b,#1d2137);border-color:#45617c}
+.analysis-header{display:flex;align-items:start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.analysis-header h2{margin:0 0 8px}
+.analysis-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.analysis-controls label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#b6c7dc;font-weight:650}
+.analysis-controls select{width:100%}
+.analysis-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.analysis-result{min-height:225px}
+.analysis-item{padding:11px 0;border-bottom:1px solid #344965}
+.analysis-item:last-child{border-bottom:0}
+.analysis-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.analysis-row .value{font-weight:760;font-variant-numeric:tabular-nums}
+.analysis-sub{font-size:12px;color:#adc3d8;line-height:1.65;margin-top:5px}
+.analysis-meter{display:flex;height:10px;border:1px solid #3b5372;border-radius:999px;background:#2a415e;overflow:hidden;margin:8px 0}
+.analysis-meter .bar{height:100%;background:#489ce9}
+.analysis-meter .zero{height:100%;background:#ad6577}
+.analysis-note{font-size:12px;color:#abbcd2;line-height:1.7}
+.analysis-timeline{margin:7px 0 8px;padding-left:15px;color:#b7c8d7;font-size:12px;line-height:1.6}
+.analysis-score{display:inline-block;border:1px solid #526a89;border-radius:8px;padding:4px 8px;font-size:12px}
+@media(max-width:1180px){.analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.analysis-grid>.panel:last-child{grid-column:1/-1}}
+@media(max-width:700px){.analysis-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.analysis-grid{grid-template-columns:1fr}.analysis-grid>.panel:last-child{grid-column:auto}}
