@@ -84,16 +84,34 @@ function timeText(s){
  const n=Math.floor(Math.max(0,s)+1e-6);return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
 }
 function routeModel(team,jungler,routeKey,roster,list,startSec){
- const route=ROUTE[routeKey]||ROUTE["full-top"];
+ const template=ROUTE[routeKey]||ROUTE["full-top"];
+ const sequences={
+  blue:{
+   "full-top":["Red","Krugs","Raptors","Wolves","Blue","Gromp"],
+   "full-bot":["Blue","Gromp","Wolves","Raptors","Red","Krugs"],
+   "three-top":["Red","Raptors","Blue"],
+   "three-mid":["Red","Raptors","Blue"],
+   "three-bot":["Blue","Gromp","Red"]
+  },
+  red:{
+   "full-top":["Blue","Gromp","Wolves","Raptors","Red","Krugs"],
+   "full-bot":["Red","Krugs","Raptors","Wolves","Blue","Gromp"],
+   "three-top":["Blue","Wolves","Red"],
+   "three-mid":["Blue","Wolves","Red"],
+   "three-bot":["Red","Raptors","Blue"]
+  }
+ };
+ const route={label:template.label,lane:template.lane,sequence:sequences[team][routeKey]||template.sequence};
  const t=trait(jungler&&jungler.id),clear=t[5]||0;
- const baseClear=clamp(25-2*clear,17,31);
- let sec=clamp(+startSec||95,75,125),prev=null;
+ const baseClear=clamp(21-1.6*clear,14,25);
+ let sec=clamp(+startSec||55,55,90),prev=null;
  const timeline=[];
  const points=[];
  for(let i=0;i<route.sequence.length;i++){
   const name=route.sequence[i],xy=CAMP_POS[team][name];
-  const travel=prev?clamp(Math.round(Math.hypot(xy[0]-prev[0],xy[1]-prev[1])/22),5,18):0;
+  const travel=prev?clamp(Math.round(Math.hypot(xy[0]-prev[0],xy[1]-prev[1])/40),3,10):0;
   sec+=travel;
+  if(name==="Gromp"||name==="Krugs")sec=Math.max(67,sec);
   const begin=sec;
   sec+=baseClear;
   timeline.push({name:name,start:+begin.toFixed(1),finish:+sec.toFixed(1),label:timeText(begin)+"–"+timeText(sec)});
@@ -101,7 +119,7 @@ function routeModel(team,jungler,routeKey,roster,list,startSec){
   prev=xy;
  }
  const lanePos={TOP:[430,130],MID:[450,450],BOT:[640,765]}[route.lane];
- const travel=prev?clamp(Math.round(Math.hypot(lanePos[0]-prev[0],lanePos[1]-prev[1])/23),7,26):17;
+ const travel=prev?clamp(Math.round(Math.hypot(lanePos[0]-prev[0],lanePos[1]-prev[1])/40),6,18):15;
  const arrival=Math.round(sec+travel+4);
  const own=roster.filter(x=>x.team===team&&LANE_ROLES[route.lane].includes(x.lane));
  const hasSetup=own.reduce((score,x)=>score+trait(x.id)[2]+trait(x.id)[3]*.4,0);
@@ -109,7 +127,7 @@ function routeModel(team,jungler,routeKey,roster,list,startSec){
  // Lane priority is useful for neutral-objective movement but can mean pushing too far for a gank.
  const pressure=lane.ready?(team==="blue"?lane.diff:-lane.diff):0;
  const info=lane.ready?pressure>4?"라인 주도권 우위: 강가 시야·합류는 수월하지만 라인이 밀려 적 갱킹 각도는 좁을 수 있음":pressure<-4?"라인 주도권 열세: 아군 보호와 역갱이 필요할 수 있음":"라인이 비슷하게 출발할 수 있음":"픽이 미완성이라 라인 주도권을 확정할 수 없음";
- const windowScore=clamp(Math.round(50+hasSetup*3+pressure*.65-(arrival-190)*.12),15,85);
+ const windowScore=clamp(Math.round(50+hasSetup*3+pressure*.65-(arrival-180)*.12),15,85);
  return {team:team,jungler:jungler||null,route:routeKey,label:route.label,lane:route.lane,arrivalSec:arrival,arrival:timeText(arrival),score:windowScore,pressure:+pressure.toFixed(1),comments:[info,"합류 가치 지수 "+windowScore+"/100은 비교용 점수일 뿐 갱킹 성공률이 아님."],timeline:timeline,points:points};
 }
 function teamSkirmish(roster,team,lane,level,list){
