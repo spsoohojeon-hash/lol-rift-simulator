@@ -261,9 +261,31 @@ function drawUnits(){
  }
  });
 }
+function drawRoutesOverlay(){
+ if(!sim||!sim.overlay||!sim.overlay.blue||!sim.overlay.red)return;
+ ["blue","red"].forEach(function(side){
+  var route=sim.overlay[side],points=route.points||[];
+  if(!points.length)return;
+  ctx.save();
+  ctx.lineWidth=5;ctx.strokeStyle=colors[side];ctx.globalAlpha=.85;ctx.setLineDash([13,9]);
+  ctx.beginPath();
+  points.forEach(function(p,i){if(!i)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});
+  ctx.stroke();ctx.setLineDash([]);
+  points.forEach(function(p,i){
+   circle(p.x,p.y,10,"#162536",colors[side],3);
+   ctx.textAlign="center";ctx.font="bold 11px sans-serif";ctx.fillStyle="#ffffff";
+   ctx.fillText(String(i+1),p.x,p.y+4);
+  });
+  ctx.globalAlpha=1;
+  ctx.font="bold 13px sans-serif";ctx.textAlign="center";ctx.fillStyle=colors[side];
+  var last=points[points.length-1];
+  ctx.fillText(side.toUpperCase()+" "+route.arrival+" "+route.lane,last.x,last.y-21);
+  ctx.restore();
+ });
+}
 function draw(){
  if(!ctx)return;
- ctx.clearRect(0,0,900,900);drawBase();drawCamps();drawTowers();drawUnits();
+ ctx.clearRect(0,0,900,900);drawBase();drawRoutesOverlay();drawCamps();drawTowers();drawUnits();
  var s=selected();if(s){ctx.beginPath();ctx.arc(s.x,s.y,(s.r||15)+8,0,2*Math.PI);ctx.strokeStyle="#ffe99b";ctx.lineWidth=2;ctx.stroke();}
 }
 function timeString(s){var n=Math.floor(s+0.0001);return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");}
@@ -324,5 +346,41 @@ function bind(){
  $("commandStop").onclick=function(){var u=selected();if(u&&u.type==="champ"){u.moveTo=null;u.targetId=null;log(u.name+" 정지 명령");}clickCommand=null;refreshUI();};
  $("deleteSelected").onclick=function(){var u=selected();if(!u)return;sim.units=sim.units.filter(function(x){return x.id!==u.id;});sim.wards=sim.wards.filter(function(x){return x.id!==u.id;});sim.towers=sim.towers.filter(function(x){return x.id!==u.id;});sim.camps=sim.camps.filter(function(x){return x.id!==u.id;});sim.selectedId=null;refreshUI();};
 }
-window.RiftLab={init:function(api){core=api;bind();initialState();refreshChampionList();refreshUI();requestAnimationFrame(frame);},refresh:function(){if(ctx)draw();},refreshChampions:function(){refreshChampionList();images.clear();}};
+function stageSkirmish(params){
+ if(!params||!Array.isArray(params.roster))return {ok:false,reason:"분석한 밴픽을 찾을 수 없어."};
+ var lane=["TOP","MID","BOT"].includes(params.lane)?params.lane:"MID";
+ var needs=lane==="BOT"?["JUNGLE","ADC","SUPPORT"]:["JUNGLE",lane];
+ var blue=needs.map(function(role){return params.roster.find(function(x){return x.team==="blue"&&x.lane===role;});});
+ var red=needs.map(function(role){return params.roster.find(function(x){return x.team==="red"&&x.lane===role;});});
+ if(blue.concat(red).some(function(x){return !x;}))return {ok:false,reason:"양 팀의 "+lane+" 라이너와 정글러가 모두 필요해."};
+ if(sim.units.some(function(u){return u.type==="champ";})&&!confirm("기존 협곡 배치를 초기화하고 교전 실험을 시작할까?"))return {ok:false,reason:"배치 취소됨"};
+ initialState();
+ var mid={TOP:[445,136],MID:[450,455],BOT:[445,805]}[lane];
+ var level=Math.max(1,Math.min(18,+params.level||3));
+ var arrival=Math.max(180,+((params.routes||{}).blue||{}).arrivalSec||180,+((params.routes||{}).red||{}).arrivalSec||180);
+ sim.time=arrival;
+ // Avoid generating all prior lane waves when starting a standalone skirmish at a late timestamp.
+ sim.waveNumber=Math.max(0,Math.floor((arrival-65)/30)+1);
+ blue.forEach(function(x,i){addChampion(x.id,"blue",lane,mid[0]-88-i*8,mid[1]+(i-1)*28,level);});
+ red.forEach(function(x,i){addChampion(x.id,"red",lane,mid[0]+88+i*8,mid[1]+(i-1)*28,level);});
+ sim.units.forEach(function(u){
+  var foes=sim.units.filter(function(v){return v.type==="champ"&&v.team!==u.team;});
+  foes.sort(function(a,b){return dist(u,a)-dist(u,b);});
+  u.targetId=foes[0]?foes[0].id:null;
+ });
+ sim.selectedId=blue.length?sim.units[0].id:null;
+ sim.running=false;
+ log(lane+" "+(lane==="BOT"?"3대3":"2대2")+" 기본 공격 교전 실험 배치. 재생을 누르면 교전 진행.");
+ if(params.routes)sim.overlay=params.routes;
+ refreshUI();draw();
+ return {ok:true,participants:sim.units.filter(function(u){return u.type==="champ";}).length,level:level,startSec:arrival};
+}
+window.RiftLab={
+ init:function(api){core=api;bind();initialState();refreshChampionList();refreshUI();requestAnimationFrame(frame);},
+ refresh:function(){if(ctx)draw();},
+ refreshChampions:function(){refreshChampionList();images.clear();},
+ showRoutes:function(routes){if(!sim||!routes)return false;sim.overlay=routes;draw();refreshUI();return true;},
+ stageSkirmish:stageSkirmish,
+ getSituation:function(){return {time:sim.time,champions:sim.units.filter(function(u){return u.type==="champ";}).map(function(u){return {id:u.champId,team:u.team,hp:u.hp,maxHp:u.maxHp,targetId:u.targetId};}),hasRouteOverlay:!!sim.overlay};}
+};
 })();
