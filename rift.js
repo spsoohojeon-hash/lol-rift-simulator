@@ -134,7 +134,7 @@ function updateUnit(u,dt){
 }
 function tick(dt){
  sim.time+=dt;
- while(sim.time>=30+sim.waveNumber*30){spawnWave(true);}
+ while(sim.time+1e-6>=30+sim.waveNumber*30){spawnWave(true);}
  sim.camps.forEach(function(c){if(c.hp<=0&&sim.time>=c.availableAt){c.hp=c.maxHp;c.cooldown=0;log(c.name+" 재생성 (근사)");}});
  var order=sim.units.concat(sim.towers,sim.camps);
  order.forEach(function(u){
