@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e;};
 const ROLE_LABEL={TOP:"탑",MID:"미드",BOT:"바텀"};
 function options(){
- return {blueRoute:$("anaBlueRoute").value||"full-top",redRoute:$("anaRedRoute").value||"full-bot",lane:$("anaFocus").value||"MID",level:Number($("anaLevel").value)||3,startSec:95};
+ return {blueRoute:$("anaBlueRoute").value||"full-top",redRoute:$("anaRedRoute").value||"full-bot",lane:$("anaFocus").value||"MID",level:Number($("anaLevel").value)||3,startSec:55};
 }
 function save(){
  try{localStorage.setItem("riftlab-operations-v1",JSON.stringify(options()));}catch(e){}
