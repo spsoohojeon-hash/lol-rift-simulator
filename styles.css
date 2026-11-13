@@ -121,3 +121,51 @@ header{border-bottom:1px solid #253957;padding:20px 0;margin-bottom:18px}.head-r
 .portal-intro{padding:15px;flex-wrap:wrap}.portal-intro h2{font-size:20px}
 #textbookArticle{padding:14px}}
 @media(max-width:420px){.champion-book-list{grid-template-columns:repeat(2,minmax(0,1fr))}.portal-rune-list{grid-template-columns:1fr}}
+
+
+/* v0.7 Damage Lab */
+.damage-layout{display:grid;grid-template-columns:minmax(290px,.95fr) minmax(330px,1.25fr);gap:12px;align-items:start}
+.damage-layout .panel h3{font-size:16px;margin-bottom:13px}
+.damage-inline{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.damage-inline label,.damage-numeric-grid label,.damage-formula-grid label{display:flex;flex-direction:column;gap:5px;color:#bcd1e7;font-size:12px}
+.damage-inline input,.damage-inline select,.damage-numeric-grid input,.damage-formula-grid input,.damage-formula-grid select{width:100%}
+.damage-quest{display:flex;align-items:center;gap:8px;margin:12px 0;color:#dbebfb;font-size:13px}
+.damage-quest input{min-width:18px;height:18px;accent-color:#46aae6}
+.damage-ranks{margin-top:14px;border-top:1px solid #2a4961}
+.damage-rank-row{padding:9px 2px;border-bottom:1px solid #2d435d;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.damage-rank-name{font-size:12px;font-weight:650;max-width:60%;overflow:hidden;text-overflow:ellipsis}
+.damage-rank-buttons{display:flex;align-items:center;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.damage-rank-buttons strong{min-width:38px;text-align:center;font-size:12px}
+.damage-item-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:200px;overflow:auto;margin:12px 0}
+.damage-item-choice{display:flex;align-items:center;gap:6px;text-align:left;min-width:0;padding:5px;background:#14283a;font-size:11px}
+.damage-item-choice img{width:31px;height:31px;border-radius:5px;object-fit:cover}
+.damage-item-choice span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.damage-equipped{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.damage-item-slot{display:flex;align-items:center;gap:6px;min-height:49px;border:1px dashed #49617d;background:#0e1c2c;border-radius:9px;padding:5px}
+.damage-item-slot img{width:32px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0}
+.damage-item-slot span{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.damage-item-slot button{padding:2px 6px}
+.damage-numeric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.damage-formula-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.damage-header{display:flex;gap:12px;align-items:center;margin-bottom:13px}
+.damage-header img{width:61px;height:61px;object-fit:cover;border-radius:11px}
+.damage-header strong{font-size:18px}
+.damage-stat-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.damage-stat{border:1px solid #2f4b69;background:#102239;padding:8px;border-radius:8px}
+.damage-stat small{display:block;font-size:10px;color:#b2c8dc}
+.damage-stat strong{display:block;font-size:16px;margin-top:5px;font-variant-numeric:tabular-nums}
+.damage-results{display:grid;gap:9px;margin:14px 0}
+.damage-result-card{background:linear-gradient(120deg,#142a42,#121e32);border:1px solid #365572;border-radius:10px;padding:12px}
+.damage-result-card>strong{display:block;font-size:14px;margin-bottom:9px}
+.damage-result-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.damage-result-values>div{padding:8px;background:#0d1e2d;border-radius:7px}
+.damage-result-values small{display:block;color:#aac1d8;font-size:10px}
+.damage-result-values strong{display:block;font-size:20px;margin-top:5px;font-variant-numeric:tabular-nums}
+.damage-result-empty{color:#99adc7;font-size:12px}
+.damage-result-note,.damage-verified-note{font-size:11px;margin-top:8px;line-height:1.6;color:#aec4da}
+.damage-result-card .portal-external{font-size:12px;margin:8px 0 0;padding:5px 8px}
+.damage-ability-detail{max-height:330px;overflow:auto}
+.damage-ability-line{padding:10px 0;border-bottom:1px solid #355069;font-size:13px}
+.damage-ability-line .sub{line-height:1.7;margin:5px 0}
+@media(max-width:1050px){.damage-layout{grid-template-columns:1fr}.damage-stat-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){.damage-stat-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.damage-item-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}.damage-equipped{grid-template-columns:repeat(2,minmax(0,1fr))}.damage-rank-name{max-width:55%}}
