@@ -210,7 +210,7 @@ async function selectChampion(id){
 }
 
 function percent(v){
- const x=Number(v);return Number.isFinite(x)&&x>=0&&x<=1?(100*x).toFixed(2)+"%":"—";
+ if(v===null||v===undefined||v==="")return "—";const x=Number(v);return Number.isFinite(x)&&x>=0&&x<=1?(100*x).toFixed(2)+"%":"—";
 }
 function getNumber(v){
  return Number.isInteger(+v)&&+v>=0?Number(v).toLocaleString("ko-KR"):"—";
@@ -228,7 +228,7 @@ function displayVerified(data){
  const first=$("portalRuneStats"),second=$("portalItemStats"),third=$("portalCounterStats");
  if(!first||!second||!third)return;
  for(const block of [first,second,third])block.replaceChildren(el("div","portal-verified-source",verifiedLabel(data)));
- if(Number.isFinite(Number(data.winRate)))showStatisticRow(first,"챔피언 전체 승률",data.winRate,data.sampleSize,"같은 포지션");
+ if(data.winRate!==null&&data.winRate!==undefined&&Number.isFinite(Number(data.winRate)))showStatisticRow(first,"챔피언 전체 승률",data.winRate,data.sampleSize,"같은 포지션");
  for(const x of (Array.isArray(data.runes)?data.runes:[]).slice(0,6)){
   showStatisticRow(first,x.name||"룬 조합",x.winRate,x.games,"룬·아이템 집계");
  }
@@ -328,7 +328,7 @@ function init(){
  $("tabChampions").onclick=()=>core.switchTab("champions");
  $("tabProfile").onclick=()=>core.switchTab("profile");
  initTextbook();initChampions();initProfile();
- window.LeaguePortal={refreshChampions:function(){drawChampList();if(chosen)selectChampion(chosen);},chapter:function(i){chooseChapter(i);}};
+ window.LeaguePortal={refreshChampions:function(){drawChampList();ensureStatic().then(()=>{if(chosen)selectChampion(chosen);});},chapter:function(i){chooseChapter(i);}};
 }
 document.addEventListener("DOMContentLoaded",init);
 })();
