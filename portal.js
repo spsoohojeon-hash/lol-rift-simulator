@@ -174,7 +174,7 @@ async function ensureStatic(){
 }
 function renderExtras(c,container){
  const r=el("section","portal-champion-section");r.append(el("h3","","룬 정보"));
- r.append(availability("추천 룬 승률 —","실제 룬 조합별 표본·승률은 집계 데이터 API를 연결한 뒤 표시할 거야."));
+ const runeStats=availability("추천 룬 승률 —","실제 룬 조합별 표본·승률은 집계 데이터 API를 연결한 뒤 표시할 거야.");runeStats.id="portalRuneStats";r.append(runeStats);
  const trees=el("div","portal-rune-list");
  if(allRunes){for(const tree of allRunes){
   const box=el("div","portal-rune-group");box.append(el("strong","",tree.name));
@@ -184,14 +184,14 @@ function renderExtras(c,container){
  else trees.append(el("p","sub","핵심 룬 카탈로그를 불러오는 중이야."));
  r.append(trees);container.append(r);
  const it=el("section","portal-champion-section");it.append(el("h3","","아이템 빌드"));
- it.append(availability("코어 아이템·빌드 승률 —","현재 추천 빌드 통계가 없어. 아래에는 챔피언별 추천이 아닌 일반 아이템 카탈로그를 표시해."));
+ const itemStats=availability("코어 아이템·빌드 승률 —","현재 추천 빌드 통계가 없어. 아래에는 챔피언별 추천이 아닌 일반 아이템 카탈로그를 표시해.");itemStats.id="portalItemStats";it.append(itemStats);
  const catalog=el("div","portal-item-list");
  if(allItems){const items=Object.entries(allItems).filter(([id,x])=>x.maps?.["11"]&&x.gold?.purchasable&&x.gold.total>=2300&&!x.hideFromAll&&/^\d+$/.test(id)).slice(0,16);
   for(const [id,x] of items){const card=el("div","portal-item");card.append(image("https://ddragon.leagueoflegends.com/cdn/"+getVersion()+"/img/item/"+id+".png",x.name),el("span","",x.name));catalog.append(card);}
  }else catalog.append(el("p","sub","아이템 데이터 로딩 중"));
  it.append(catalog);container.append(it);
  const counter=el("section","portal-champion-section");counter.append(el("h3","","카운터 및 역카운터"));
- counter.append(availability("불리한 상대 / 유리한 상대 —","포지션별 상대 승률, 경기 수, 표본 기간이 포함된 데이터 연결이 필요해."));
+ const counterStats=availability("불리한 상대 / 유리한 상대 —","포지션별 상대 승률, 경기 수, 표본 기간이 포함된 데이터 연결이 필요해.");counterStats.id="portalCounterStats";counter.append(counterStats);
  counter.append(el("p","sub","카운터는 챔피언 전체가 아니라 같은 포지션의 매치업으로 계산해야 정확해. 승률과 표본수를 함께 보여줄 계획이야."));
  container.append(counter);
 }
@@ -206,8 +206,59 @@ async function selectChampion(id){
  const external=el("a","portal-external","LOL.PS에서 현재 빌드·룬·카운터 통계 보기");
  external.href=siteLink(c);external.target="_blank";external.rel="noopener noreferrer";root.append(external);
  const spells=el("section","portal-champion-section");spells.id="portalChampionSpells";spells.append(el("p","sub","스킬 정보를 불러오는 중..."));root.append(spells);
- renderExtras(c,root);loadExtra(c);
+ renderExtras(c,root);loadExtra(c);loadVerifiedStats(c);
 }
+
+function percent(v){
+ const x=Number(v);return Number.isFinite(x)&&x>=0&&x<=1?(100*x).toFixed(2)+"%":"—";
+}
+function getNumber(v){
+ return Number.isInteger(+v)&&+v>=0?Number(v).toLocaleString("ko-KR"):"—";
+}
+function verifiedLabel(data){
+ return "패치 "+data.patch+" · "+(data.region||"KR")+" · "+(data.rankRange||"랭크 미지정")+" · 표본 "+getNumber(data.sampleSize)+"게임 · 집계 시점 "+data.updatedAt;
+}
+function showStatisticRow(root,name,winRate,samples,sub){
+ const line=el("div","portal-verified-row");
+ line.append(el("strong","",name),el("span","",percent(winRate)+" · "+getNumber(samples)+"게임"+(sub?" · "+sub:"")));
+ root.append(line);
+}
+function displayVerified(data){
+ if(!data||data.status!=="ready"||!data.patch||!data.sampleSize||!data.updatedAt)return;
+ const first=$("portalRuneStats"),second=$("portalItemStats"),third=$("portalCounterStats");
+ if(!first||!second||!third)return;
+ for(const block of [first,second,third])block.replaceChildren(el("div","portal-verified-source",verifiedLabel(data)));
+ if(Number.isFinite(Number(data.winRate)))showStatisticRow(first,"챔피언 전체 승률",data.winRate,data.sampleSize,"같은 포지션");
+ for(const x of (Array.isArray(data.runes)?data.runes:[]).slice(0,6)){
+  showStatisticRow(first,x.name||"룬 조합",x.winRate,x.games,"룬·아이템 집계");
+ }
+ if(!Array.isArray(data.runes)||!data.runes.length)first.append(el("p","sub","검증된 룬별 게임 표본이 없어."));
+ for(const x of (Array.isArray(data.builds)?data.builds:[]).slice(0,6)){
+  const name=(x.items||[]).map(id=>allItems?.[String(id)]?.name||String(id)).join(" → ")||"아이템 빌드";
+  showStatisticRow(second,name,x.winRate,x.games,"완성 코어 조합");
+ }
+ if(!Array.isArray(data.builds)||!data.builds.length)second.append(el("p","sub","검증된 아이템 조합 표본이 없어."));
+ const all=core.champions(),name=id=>{const c=all.find(z=>String(z.key)===String(id));return c?.name||"챔피언 #"+id;};
+ third.append(el("h4","","카운터 · 선택한 챔피언이 불리한 상대"));
+ const bad=Array.isArray(data.counters)?data.counters:[];
+ for(const x of bad.slice(0,5))showStatisticRow(third,name(x.championKey),x.winRate,x.games);
+ if(!bad.length)third.append(el("p","sub","확인된 불리한 매치업 통계가 없어."));
+ third.append(el("h4","","역카운터 · 선택한 챔피언이 유리한 상대"));
+ const good=Array.isArray(data.favorable)?data.favorable:[];
+ for(const x of good.slice(0,5))showStatisticRow(third,name(x.championKey),x.winRate,x.games);
+ if(!good.length)third.append(el("p","sub","확인된 유리한 매치업 통계가 없어."));
+}
+async function loadVerifiedStats(c){
+ const base=apiBase();if(!base||!c.key)return;
+ try{
+  const params=new URLSearchParams({key:c.key,role:$("portalChampionRole").value,region:"kr"});
+  const res=await fetch(base+"/api/stats/champion?"+params.toString());
+  if(!res.ok)return;
+  const data=await res.json();if(chosen!==c.id)return;
+  displayVerified(data);
+ }catch(e){console.warn("Champion aggregate stats unavailable",e);}
+}
+
 function initChampions(){
  $("portalChampionSearch").oninput=drawChampList;
  $("portalChampionRole").onchange=()=>{if(chosen)selectChampion(chosen);};
@@ -277,6 +328,7 @@ function init(){
  $("tabChampions").onclick=()=>core.switchTab("champions");
  $("tabProfile").onclick=()=>core.switchTab("profile");
  initTextbook();initChampions();initProfile();
+ window.LeaguePortal={refreshChampions:function(){drawChampList();if(chosen)selectChampion(chosen);},chapter:function(i){chooseChapter(i);}};
 }
 document.addEventListener("DOMContentLoaded",init);
 })();
