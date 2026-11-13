@@ -3,10 +3,55 @@
 <meta name="description" content="리그 오브 레전드 비공식 피어리스 밴픽 · 협곡 2D 실험 시뮬레이터">
 <title>협곡 연구소 | Fearless Draft & Rift Lab</title><link rel="stylesheet" href="./styles.css"></head>
 <body><div class="shell"><header><div class="head-row">
-<div class="brand"><div class="logo">⚔</div><div><h1>협곡 연구소 <span class="sub">v0.5</span></h1><div class="sub">FEARLESS DRAFT · SUMMONER'S RIFT LAB</div></div></div>
-<nav class="topnav"><button class="tab active" id="tabDraft">피어리스 밴픽</button><button class="tab" id="tabAnalysis">라인·정글 분석</button><button class="tab" id="tabRift">협곡 시뮬</button></nav>
+<div class="brand"><div class="logo">⚔</div><div><h1>협곡 연구소 <span class="sub">v0.6</span></h1><div class="sub">FEARLESS DRAFT · SUMMONER'S RIFT LAB</div></div></div>
+<nav class="topnav"><button class="tab active" id="tabTextbook">운영 교과서</button><button class="tab" id="tabChampions">챔피언 백과</button><button class="tab" id="tabProfile">전적·인게임</button><button class="tab" id="tabDraft">밴픽 연구실</button><button class="tab" id="tabAnalysis">라인·정글 분석</button><button class="tab" id="tabRift">협곡 실험실</button></nav>
 </div></header>
-<section class="view active" id="draftView">
+
+<section class="view active" id="textbookView">
+ <div class="portal-intro">
+ <div><div class="portal-eyebrow">LEAGUE LAB · INTERACTIVE TEXTBOOK</div>
+ <h2>읽고, 움직여 보고, 직접 판단하는 롤 운영 교과서</h2>
+ <p class="sub">게임 이해 → 라인 운영 → 정글 판단 → 시야·오브젝트 → 한타 → 밴픽까지. 실제 숫자와 모형의 추정치는 구분해 표시해.</p></div>
+ <button class="primary" id="textbookToSimulator">협곡 실험실 열기</button></div>
+ <div class="textbook-layout">
+ <aside class="panel"><h3>학습 목차</h3><div id="textbookMenu" class="textbook-menu"></div></aside>
+ <article class="panel" id="textbookArticle"><h2>학습 콘텐츠 준비 중</h2></article></div>
+ </section>
+<section class="view" id="championsView">
+ <div class="portal-intro">
+ <div><div class="portal-eyebrow">CHAMPION ENCYCLOPEDIA</div><h2>챔피언 검색 · 스킬 · 룬과 빌드</h2>
+ <p class="sub">공식 Data Dragon 챔피언 정보를 불러와. 룬·아이템·카운터의 실제 승률은 데이터가 있을 때만 표시해.</p></div></div>
+ <div class="toolbar">
+ <input id="portalChampionSearch" placeholder="챔피언 이름 검색" aria-label="챔피언 검색" style="flex:1;min-width:200px">
+ <label>포지션 <select id="portalChampionRole"><option value="TOP">TOP</option><option value="JUNGLE">JUNGLE</option><option value="MID">MID</option><option value="ADC">ADC</option><option value="SUPPORT">SUPPORT</option></select></label>
+ <button id="portalChampionRefresh">새로고침</button></div>
+ <div class="champion-book-layout">
+ <aside class="panel"><h3>챔피언</h3><div id="portalChampionList" class="champion-book-list"></div></aside>
+ <div class="panel" id="portalChampionDetails"><p class="sub">왼쪽에서 챔피언을 선택해.</p></div></div>
+ </section>
+<section class="view" id="profileView">
+ <div class="portal-intro">
+ <div><div class="portal-eyebrow">RIOT ID SEARCH · MATCH HISTORY · LIVE GAME</div><h2>전적 검색과 인게임 정보</h2>
+ <p class="sub">서버에 Riot API 키가 연결된 뒤 정상 조회할 수 있어. 게임 중 숨겨진 정보나 경쟁상 불공정한 분석은 제공하지 않아.</p></div>
+ <span class="pill unknown" id="portalApiStatus">API 서버 미연결</span></div>
+ <section class="panel">
+ <div class="profile-grid">
+ <label>Riot ID <input id="portalRiotName" placeholder="게임 이름" autocomplete="off" maxlength="32"></label>
+ <label>태그 <input id="portalRiotTag" placeholder="KR1" autocomplete="off" maxlength="12"></label>
+ <label>서버 <select id="portalRiotRegion"><option value="kr">한국 (KR)</option><option value="jp1">일본 (JP)</option><option value="na1">북미 (NA)</option><option value="euw1">서유럽 (EUW)</option></select></label>
+ </div>
+ <div class="toolbar" style="margin-top:12px">
+ <button class="primary" id="portalSearchMatches">최근 전적 검색</button>
+ <button id="portalSearchLive">현재 게임 확인</button>
+ <button id="portalApiSettings">API 연결 설정</button>
+ <button disabled title="Riot Production API 및 RSO 클라이언트 승인 후 활성화">라이엇 계정 로그인 · 승인 대기</button></div>
+ <div id="portalApiConfig" hidden><p class="help">GitHub Pages와 별도로 배포한 Cloudflare Worker 주소만 입력해. API 키는 이 웹페이지에 절대 넣지 마.</p>
+ <label class="sub">Worker API 주소 <input id="portalWorkerUrl" placeholder="https://your-worker.your-domain.workers.dev" style="min-width:min(100%,430px)"></label><button id="portalSaveWorker">주소 저장</button></div>
+ <p class="help" id="portalProfileState">전적/인게임 조회는 API 서버가 설정될 때까지 비활성 상태야. Riot Sign On 인증은 승인 및 서버 구축이 필요한 별도 기능이야.</p>
+ </section>
+ <div class="panel" id="portalProfileResults" style="margin-top:12px"><p class="sub">조회 결과가 여기에 나타나.</p></div>
+</section>
+<section class="view" id="draftView">
 <div class="toolbar"><label>시리즈 <select id="seriesLength"><option value="3">BO3</option><option value="5" selected>BO5</option></select></label><div id="gameTabs" class="series-tabs"></div>
 <button id="undoDraft">↶ 되돌리기</button><button id="nextGame" class="primary">다음 세트</button>
 <button id="resetSeries" class="warn">시리즈 초기화</button><button id="exportDraft">밴픽 JSON 저장</button></div>
@@ -81,4 +126,4 @@
 </div>
 </section>
 <footer class="footer">비공식 팬 제작 학습 도구 · 챔피언 아이콘/명단은 Riot Data Dragon 제공. 밴픽 규칙은 대회 형식을 참고했고, 협곡 계산은 실험용 근사치야.<br>Rift Lab isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</footer>
-</div><script src="./data.js"></script><script src="./app.js"></script><script src="./rift.js"></script><script src="./auto-draft.js"></script><script src="./analysis-engine.js"></script><script src="./analysis-ui.js"></script></body></html>
+</div><script src="./data.js"></script><script src="./app.js"></script><script src="./rift.js"></script><script src="./auto-draft.js"></script><script src="./analysis-engine.js"></script><script src="./analysis-ui.js"></script><script src="./portal.js"></script></body></html>
