@@ -206,16 +206,17 @@ function render(){
   const img=node("img");img.src=core.icon(champ.id);img.alt=champ.name;
   h.append(img,node("strong","",champ.name+" · Lv."+s.level+" "+role()+(quest()?" · 퀘스트 완료":"")));
  }
- const summary=$("damageStatSummary");summary.replaceChildren();
- for(const [title,val] of [["총 공격력",s.ad],["추가 AD",s.bonusAD],["주문력",s.ap],["최대 체력",s.hp],["방어력",s.armor],["마저",s.mr],["공격속도",s.attackSpeed],["치명타 확률",s.critChance+"%"]]){
-  const b=node("div","damage-stat");b.append(node("small","",title),node("strong","",fmt(val)));summary.append(b);
- }
- const results=$("damageResults");results.replaceChildren();
  if(!champ?.stats||!Number.isFinite(Number(champ.stats.hp))){
-  results.append(node("p","damage-result-empty","공식 Data Dragon 기본 능력치가 아직 없어. 임의 기본값으로 피해를 계산하지 않아. 연결을 확인해."));
-  const croot=$("damageCustomResult");croot.replaceChildren(node("p","damage-result-empty","공식 챔피언 스탯 로딩 후 활성화돼."));
+  $("damageStatSummary").replaceChildren(node("p","damage-result-empty","공식 Data Dragon 능력치를 불러오지 못했어. 임의 수치로 표시하지 않아."));
+  $("damageResults").replaceChildren(node("p","damage-result-empty","공식 챔피언 기본 능력치 연결 후 데미지 계산을 사용할 수 있어."));
+  $("damageCustomResult").replaceChildren(node("p","damage-result-empty","공식 챔피언 스탯 로딩 후 활성화돼."));
   renderDetailList();return;
  }
+ const summary=$("damageStatSummary");summary.replaceChildren();
+ for(const [title,val] of [["총 공격력",s.ad],["추가 AD",s.bonusAD],["주문력",s.ap],["최대 체력",s.hp],["방어력",s.armor],["마저",s.mr],["공격속도",s.attackSpeed],["치명타 확률",s.critChance+"%"]]){
+  const b=node("div","damage-stat");b.append(node("small","",title),node("strong","",typeof val==="string"&&val.endsWith("%")?val:fmt(val)));summary.append(b);
+ }
+ const results=$("damageResults");results.replaceChildren();
  results.append(resultCard("일반 기본 공격",calculator.autoAttack(s,t,{crit:$("damageCrit").checked}),
   "방어력 적용 후 1회 피해 · 스킬/아이템 고유 효과 미반영"));
  for(const k of calculator.ABILITIES){
