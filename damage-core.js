@@ -97,7 +97,8 @@ const VERIFIED={
  Yasuo:{Q:{name:"강철 폭풍 1회 적중",type:"physical",base:[20,45,70,95,120],totalAD:1,source:"https://www.leagueoflegends.com/en-us/news/game-updates/league-of-legends-patch-26-22-notes/"}},
  Maokai:{Q:{name:"덤불 주먹 1회 적중",type:"magic",base:[75,120,165,210,255],targetMaxHP:[.025,.03,.035,.04,.045],ap:.5,source:"https://www.leagueoflegends.com/en-us/news/game-updates/league-of-legends-patch-26-22-notes/"}},
  Thresh:{R:{name:"영혼 감옥의 첫 벽",type:"magic",base:[200,350,500],ap:1,source:"https://www.leagueoflegends.com/en-us/news/game-updates/league-of-legends-patch-26-22-notes/"}},
- Smolder:{W:{name:"에취! 폭발 피해 (직격 별도)",type:"physical",base:[25,50,75,100,125],bonusAD:.5,ap:.8,source:"https://www.leagueoflegends.com/en-us/news/game-updates/league-of-legends-patch-26-22-notes/"}}
+ Smolder:{W:{name:"에취! 폭발 피해 (직격 별도)",type:"physical",base:[25,50,75,100,125],bonusAD:.5,ap:.8,source:"https://www.leagueoflegends.com/en-us/news/game-updates/league-of-legends-patch-26-22-notes/"}},
+ Viktor:{R:{name:"혼돈의 폭풍 첫 적중 (지속 피해 별도)",type:"magic",base:[100,175,250],ap:.6,source:"https://www.leagueoflegends.com/en-us/news/game-updates/league-of-legends-patch-26-22-notes/"}}
 };
 function formulaDamage(formula,rank,stats,target){
  if(!formula||rank<1)return null;
