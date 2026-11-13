@@ -52,7 +52,7 @@ function statBuild(champion,level,role,quest,items,dict,manual){
   attackSpeed:Math.max(.05,rawAS),critChance:norm((item.FlatCritChanceMod||0)*100+norm(extra.critChance),0,100),
   moveSpeed:value("movespeed",335)+(item.FlatMovementSpeedMod||0),
   items:eq.itemIds,itemData:item,
-  manualPen:{armorPercent:norm(extra.armorPenPct,0,100),magicPercent:norm(extra.magicPenPct,0,100),armorFlat:norm(extra.lethality,0,150),magicFlat:norm(extra.magicPenFlat,0,150)},
+  manualPen:{armorPercent:norm(extra.armorPenPct+(item.PercentArmorPenetrationMod||0)*100,0,100),magicPercent:norm(extra.magicPenPct+(item.PercentMagicPenetrationMod||0)*100,0,100),armorFlat:norm(extra.lethality+(item.FlatArmorPenetrationMod||0),0,150),magicFlat:norm(extra.magicPenFlat+(item.FlatMagicPenetrationMod||0),0,150)},
   assumptions:[
    "챔피언 기본 능력치 및 아이템 구조화 수치는 Riot Data Dragon 기준",
    "아이템 고유 효과, 스택, 사용 효과, 스킬 적중 횟수, 룬 추가 피해는 자동 계산하지 않음",
@@ -104,7 +104,7 @@ function formulaDamage(formula,rank,stats,target){
  const idx=Math.min((formula.base||[0]).length-1,Math.max(0,rank-1));
  const val=key=>Array.isArray(formula[key])?Number(formula[key][idx]??0):Number(formula[key]||0);
  const raw=val("base")+val("totalAD")*stats.ad+val("bonusAD")*stats.bonusAD+
-   val("ap")*stats.ap+val("ownMaxHP")*stats.hp+val("targetMaxHP")*norm(target.hp)+
+   val("ap")*stats.ap+val("ownMaxHP")*stats.hp+val("targetMaxHP")*norm(target.maxHp??target.hp)+
    val("targetMissingHP")*Math.max(0,norm(target.maxHp??target.hp)-norm(target.hp));
  return {...damage(Math.max(0,raw),formula.type||"physical",target,stats.manualPen),name:formula.name||"스킬 피해",rank,source:formula.source||null};
 }
