@@ -167,7 +167,7 @@ function eventHandlers(){
  $("saveCategory").onclick=function(){var key=$("categoryChampion").value+"|"+$("categoryLane").value;state.overrides[key]=$("categoryChoice").value;save();renderDraft();setMsg("분류 수정 저장: "+champ($("categoryChampion").value).name);};
 }
 function switchTab(which){
- ["textbook","champions","profile","draft","analysis","rift"].forEach(function(tab){
+ ["textbook","champions","damage","profile","draft","analysis","rift"].forEach(function(tab){
   var title=tab[0].toUpperCase()+tab.slice(1);
   $(tab+"View").classList.toggle("active",which===tab);
   $("tab"+title).classList.toggle("active",which===tab);
@@ -184,7 +184,7 @@ async function fetchChampions(){
  if(!res.ok)throw Error("Champions HTTP "+res.status);
  var list=await res.json();
  champions=Object.values(list.data).map(function(x){return {id:x.id,name:x.name,english:x.id,key:x.key,image:x.image.full,stats:x.stats||null,tags:x.tags||[]};}).sort(function(a,b){return a.name.localeCompare(b.name,"ko");});
- renderDraft();renderCategoryControls();if(window.RiftLab)window.RiftLab.refreshChampions();if(window.LeaguePortal)window.LeaguePortal.refreshChampions();
+ renderDraft();renderCategoryControls();if(window.RiftLab)window.RiftLab.refreshChampions();if(window.LeaguePortal)window.LeaguePortal.refreshChampions();if(window.LeagueDamageLab)window.LeagueDamageLab.refreshChampions();
  }catch(e){console.warn("Data Dragon unavailable, using fallback list",e);$("catalogCount").textContent="오프라인 명단 사용 · 이미지 일부 제한"; }
 }
 function init(){
