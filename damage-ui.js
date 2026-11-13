@@ -211,6 +211,11 @@ function render(){
   const b=node("div","damage-stat");b.append(node("small","",title),node("strong","",fmt(val)));summary.append(b);
  }
  const results=$("damageResults");results.replaceChildren();
+ if(!champ?.stats||!Number.isFinite(Number(champ.stats.hp))){
+  results.append(node("p","damage-result-empty","공식 Data Dragon 기본 능력치가 아직 없어. 임의 기본값으로 피해를 계산하지 않아. 연결을 확인해."));
+  const croot=$("damageCustomResult");croot.replaceChildren(node("p","damage-result-empty","공식 챔피언 스탯 로딩 후 활성화돼."));
+  renderDetailList();return;
+ }
  results.append(resultCard("일반 기본 공격",calculator.autoAttack(s,t,{crit:$("damageCrit").checked}),
   "방어력 적용 후 1회 피해 · 스킬/아이템 고유 효과 미반영"));
  for(const k of calculator.ABILITIES){
