@@ -205,6 +205,9 @@ async function selectChampion(id){
  head.append(meta);root.append(head,statGrid(c));
  const external=el("a","portal-external","LOL.PS에서 현재 빌드·룬·카운터 통계 보기");
  external.href=siteLink(c);external.target="_blank";external.rel="noopener noreferrer";root.append(external);
+ const goDamage=el("button","primary","이 챔피언으로 데미지 실험하기");
+ goDamage.onclick=()=>window.LeagueDamageLab&&window.LeagueDamageLab.open(c.id);
+ root.append(goDamage);
  const spells=el("section","portal-champion-section");spells.id="portalChampionSpells";spells.append(el("p","sub","스킬 정보를 불러오는 중..."));root.append(spells);
  renderExtras(c,root);loadExtra(c);loadVerifiedStats(c);
 }
