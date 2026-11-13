@@ -3,7 +3,7 @@
  */
 (function(){
 "use strict";
-let core,calculator,selectedId="Aphelios",version="16.22.1",details=null,itemMap={},catalog=[],items=[],ranks={Q:0,W:0,E:0,R:0},selectedItemSearch="";
+let core,calculator,selectedId="Aphelios",version="16.22.1",details=null,itemMap={},catalog=[],items=[],ranks={Q:0,W:0,E:0,R:0},selectedItemSearch="",questBoot=null;
 const $=id=>document.getElementById(id);
 const node=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
 const num=(id,fallback=0)=>{const x=Number($(id).value);return Number.isFinite(x)?x:fallback;};
@@ -17,7 +17,7 @@ const currentChampion=()=>core.champions().find(c=>c.id===selectedId)||null;
 const role=()=>$("damageRole").value||"MID";
 const quest=()=>$("damageQuest").checked;
 const level=()=>Math.round(num("damageLevel",6));
-const itemIds=()=>items.filter(Boolean);
+const itemIds=()=>items.filter(Boolean).concat(questBoot&&quest()&&role()==="ADC"?[questBoot]:[]);
 const maxRanks=()=>{
  if(details?.spells?.length>=4)return details.spells.slice(0,4).map(s=>s.maxrank||5);
  return [5,5,5,3];
@@ -115,11 +115,14 @@ function itemOption(itemId){
 function isBoot(id){
  const d=itemMap[String(id)];return d?.tags?.includes("Boots")===true||/신발|장화|구두|발걸음|장갑화/.test(d?.name||"");
 }
-function maxEquipment(){return quest()&&role()==="ADC"?7:6;}
+function hasQuestBoot(){return quest()&&role()==="ADC";}
 function addItem(id){
- if(items.includes(id)){setText("damageItemHint","같은 아이템을 중복 장착하는 기능은 지원하지 않아.");return;}
- if(items.length>=maxEquipment()){setText("damageItemHint","최대 슬롯이 가득 찼어. 먼저 아이템을 제거해.");return;}
- if(items.length===6&&!isBoot(id)){setText("damageItemHint","원딜 퀘스트 7번째 슬롯에는 신발만 장착할 수 있어.");return;}
+ if(items.includes(id)||questBoot===id){setText("damageItemHint","같은 아이템 중복 장착은 지원하지 않아.");return;}
+ if(hasQuestBoot()&&isBoot(id)){
+  if(questBoot){setText("damageItemHint","전용 신발 슬롯이 이미 가득 찼어.");return;}
+  questBoot=id;setText("damageItemHint","신발이 퀘스트 슬롯으로 이동했어.");render();return;
+ }
+ if(items.length>=6){setText("damageItemHint","일반 아이템 6칸이 가득 찼어.");return;}
  items.push(id);setText("damageItemHint","");render();
 }
 function renderItems(){
@@ -132,14 +135,22 @@ function renderItems(){
  }
  if(!displayed)root.append(node("p","sub","아이템 정보를 불러오는 중이거나 검색 결과가 없어."));
  const slots=$("damageEquipped");slots.replaceChildren();
- const max=maxEquipment();
- while(items.length>max)items.pop();
+ if(!hasQuestBoot()&&questBoot){
+  if(items.length<6)items.push(questBoot);
+  else setText("damageItemHint","원딜 퀘스트 해제로 신발 전용 슬롯의 장비가 해제됐어.");
+  questBoot=null;
+ }
+ if(hasQuestBoot()&&!questBoot){
+  const bootIndex=items.findIndex(isBoot);
+  if(bootIndex>=0)questBoot=items.splice(bootIndex,1)[0];
+ }
+ const max=hasQuestBoot()?7:6;
  for(let i=0;i<max;i++){
-  const id=items[i],area=node("div","damage-item-slot");
+  const id=i===6?questBoot:items[i],area=node("div","damage-item-slot");
   if(id){
    const d=itemMap[id]||{};const image=node("img");image.src="https://ddragon.leagueoflegends.com/cdn/"+version+"/img/item/"+id+".png";image.alt=d.name||id;
    area.append(image,node("span","",d.name||id));
-   const remove=node("button","small","×");remove.title="제거";remove.onclick=()=>{items.splice(i,1);render();};area.append(remove);
+   const remove=node("button","small","×");remove.title="제거";remove.onclick=()=>{if(i===6)questBoot=null;else items.splice(i,1);render();};area.append(remove);
   }else area.append(node("span","sub",i===6?"퀘스트 신발 슬롯":"아이템 "+(i+1)));
   slots.append(area);
  }
@@ -223,7 +234,7 @@ function resetSelected(id){
  loadChampionDetails();
 }
 function exportSettings(){
- const values={champion:selectedId,patch:version,level:level(),role:role(),quest:quest(),ranks:{...ranks},items:items.slice(),target:target(),additionalStats:bonus(),
+ const values={champion:selectedId,patch:version,level:level(),role:role(),quest:quest(),ranks:{...ranks},items:items.slice(),questBoot:questBoot,target:target(),additionalStats:bonus(),
   warning:"Riot Data Dragon structured stats + patch verified few skills; not game-accurate all ability calculator"};
  const blob=new Blob([JSON.stringify(values,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=node("a");a.href=url;a.download="league-lab-damage-"+selectedId+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),500);
@@ -247,7 +258,7 @@ function init(){
  window.LeagueDamageLab={
   refreshChampions:function(){const id=selectedId;renderChampionSelect();if(core.champions().some(c=>c.id===id))resetSelected(id);loadItems();},
   open:function(id){core.switchTab("damage");if(id&&selectedId!==id)resetSelected(id);else render();},
-  getState:function(){return {champion:selectedId,level:level(),role:role(),quest:quest(),ranks:{...ranks},items:items.slice(),stats:stats(),target:target()};},
+  getState:function(){return {champion:selectedId,level:level(),role:role(),quest:quest(),ranks:{...ranks},items:items.slice(),questBoot:questBoot,stats:stats(),target:target()};},
   setChampion:resetSelected
  };
  render();
