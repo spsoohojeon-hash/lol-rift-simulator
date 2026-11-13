@@ -113,7 +113,7 @@ function verifiedAbility(championId,spell,rank,stats,target){
  return formulaDamage(VERIFIED[championId]?.[spell],rank,stats,target);
 }
 function customAbility(formula,rank,stats,target){
- if(!formula||!formula.enabled)return null;
+ if(!formula||!formula.enabled||rank<1)return null;
  const base=norm(formula.base,0,100000);
  const f={
   name:"사용자 지정 "+formula.spell+" 1회 적중",type:formula.type,
