@@ -290,7 +290,17 @@ function renderProfile(data,kind){
  const info=el("div","portal-profile-grid");
  info.append(makeLine("소환사 레벨 "+(p.level??"—")));
  for(const q of (p.rank||[])){info.append(makeLine((q.queueType||"랭크")+" · "+q.tier+" "+q.rank+" "+q.leaguePoints+" LP · "+q.wins+"승 "+q.losses+"패"));}
- root.append(info,el("h3","","최근 랭크 경기"));
+ root.append(info);
+ const stats=data.summary;
+ if(stats&&Number(stats.games)>0){
+  const summary=el("div","portal-history-summary");
+  const record=el("div","","최근 "+stats.games+"경기 · "+stats.wins+"승 "+stats.losses+"패");
+  const percentage=Number.isFinite(Number(stats.winRate))?(Number(stats.winRate)*100).toFixed(1)+"%":"—";
+  const kda=stats.kills+" / "+stats.deaths+" / "+stats.assists;
+  summary.append(record,el("strong","",percentage+" 승률"),el("div","sub","경기당 평균 K/D/A "+kda));
+  root.append(summary);
+ }
+ root.append(el("h3","",data.queue==="flex"?"최근 자유 랭크 경기":"최근 솔로 랭크 경기"));
  if(!data.matches?.length){root.append(el("p","sub","표시할 최근 랭크 경기 데이터가 없어."));return;}
  for(const m of data.matches){const card=el("div","portal-match "+(m.win?"win":"loss"));
   card.append(el("strong","",m.win?"승리":"패배"),makeLine((m.championName||"챔피언 #"+m.championId)+" · "+m.kills+"/"+m.deaths+"/"+m.assists+" · "+Math.floor(m.durationSeconds/60)+"분 · "+(m.mode||"랭크")),makeLine("CS "+(m.cs??"—")+" · 포지션 "+(m.position||"—")));
@@ -304,11 +314,12 @@ async function searchProfile(kind){
  profileBusy=true;setState("조회 중...");
  try{
   const q=new URLSearchParams({name,tag,region:$("portalRiotRegion").value});
+  if(kind!=="live"){q.set("queue",$("portalQueue").value||"solo");q.set("count",$("portalCount").value||"10");}
   const url=base+"/api/riot/"+(kind==="live"?"live":"player")+"?"+q.toString();
   const res=await fetch(url,{headers:{Accept:"application/json"}});
   const body=await res.json().catch(()=>({}));
   if(!res.ok)throw Error(body.message||("API 응답 "+res.status));
-  renderProfile(body,kind);setState("조회 완료. 사용자가 허용한 범위와 공식 API의 공개 데이터를 표시해.");
+  renderProfile(body,kind);setState("공식 Riot API에서 조회한 경기 기록이야. 개인 전적 분석은 표시된 경기 표본 기준이야.");
  }catch(e){setState("조회 실패: "+e.message+" · Worker 키/도메인/요청 제한을 확인해.");}
  finally{profileBusy=false;}
 }
@@ -323,6 +334,27 @@ function initProfile(){
  };
  $("portalSearchMatches").onclick=()=>searchProfile("matches");
  $("portalSearchLive").onclick=()=>searchProfile("live");
+ $("portalTestApi").onclick=async()=>{
+  const base=apiBase();
+  if(!base){setState("먼저 Cloudflare Worker 주소를 입력해.");$("portalApiConfig").hidden=false;return;}
+  $("portalApiStatus").textContent="연결 확인 중";
+  try{
+   const res=await fetch(base+"/api/health",{headers:{Accept:"application/json"}});
+   const data=await res.json().catch(()=>({}));
+   if(!res.ok)throw Error("서버 응답 "+res.status);
+   if(data.service!=="League Lab API")throw Error("LEAGUE LAB API가 아닌 서버야.");
+   if(!data.riotConfigured){
+    $("portalApiStatus").textContent="서버 연결 · Riot 키 미등록";
+    setState("Worker 서버에는 연결됐어. 하지만 RIOT_API_KEY Secret 등록이 필요해.");
+   }else{
+    $("portalApiStatus").textContent="서버 및 키 등록 확인";
+    setState("Worker와 Riot 키 설정이 확인됐어. 실제 Riot API 권한·키 만료 여부는 Riot ID 검색으로 검증해야 해.");
+   }
+  }catch(e){
+   $("portalApiStatus").textContent="API 연결 실패";
+   setState("서버 연결 오류: "+e.message+" · URL 및 Cloudflare 배포·CORS 설정을 확인해.");
+  }
+ };
 }
 function init(){
  if(!window.RiftCore)return;
