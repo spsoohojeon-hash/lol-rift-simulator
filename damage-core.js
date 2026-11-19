@@ -132,7 +132,7 @@ function statBuild(champion,level,role,quest,items,dict,manual,ranks){
  const baseAD=value("attackdamage",60)+value("attackdamageperlevel",3)*g;
  const apheliosRank=champion?.id==="Aphelios"?normalizeSkillRanks(ranks,lv,role,quest,"Aphelios"):{Q:0,W:0,E:0};
  const apheliosBonusAD=4*(apheliosRank.Q||0);
- const apheliosBonusAS=.075*(apheliosRank.W||0);
+ const apheliosBonusAS=.09*(apheliosRank.W||0);
  const apheliosLethality=4.5*(apheliosRank.E||0);
  const itemAD=(item.FlatPhysicalDamageMod||0)+norm(extra.bonusAD)+apheliosBonusAD;
  const itemAP=(item.FlatMagicDamageMod||0)+norm(extra.ap);
