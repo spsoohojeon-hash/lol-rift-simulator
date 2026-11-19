@@ -72,7 +72,8 @@ function automaticR(id,lv){
  return 0;
 }
 function minRank(id,key,lv){
- return key==="R"&&getSkillSystem(id).freeR==="first"?1:automaticR(id,lv);
+ if(key!=="R")return 0;
+ return getSkillSystem(id).freeR==="first"?1:automaticR(id,lv);
 }
 function rankCap(id,key,level,role,quest){
  const lv=normalizeLevel(level,role,quest),system=getSkillSystem(id);
