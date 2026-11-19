@@ -86,6 +86,11 @@ async function getPlayer(name,tag,shard,key,queue,count){
    cs:(Number(p.totalMinionsKilled)||0)+(Number(p.neutralMinionsKilled)||0),
    durationSeconds:Number(m.info.gameDuration)||0,
    position:p.teamPosition||p.individualPosition||"",
+   visionScore:Number(p.visionScore)||0,goldEarned:Number(p.goldEarned)||0,
+   totalDamageDealtToChampions:Number(p.totalDamageDealtToChampions)||0,
+   items:[p.item0,p.item1,p.item2,p.item3,p.item4,p.item5,p.item6]
+     .map(x=>Number(x)||0).filter(x=>x>0),
+   summonerSpells:[Number(p.summoner1Id)||0,Number(p.summoner2Id)||0],
    mode:queue===420?"랭크 솔로":"자유 랭크",
    gameStartTimestamp:m.info.gameStartTimestamp||null
   });
