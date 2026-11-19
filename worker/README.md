@@ -7,7 +7,7 @@
 | 엔드포인트 | 기능 | 외부 전제조건 |
 |---|---|---|
 | GET \`/api/health\` | 서버 상태 및 Riot 키 설정 여부 | Worker 배포 |
-| GET \`/api/riot/player?name=...&tag=...&region=kr\` | Riot ID → PUUID, 최근 솔로 랭크 5경기, 랭크 | 유효한 Riot API 키 |
+| GET \`/api/riot/player?name=...&tag=...&region=kr&queue=solo&count=10\` | Riot ID → PUUID, 솔로·자유 랭크 최근 5/10경기, 티어·LP, 경기별 KDA 및 평균 승률·KDA | 유효한 Riot API 키 |
 | GET \`/api/riot/live?name=...&tag=...&region=kr\` | 공개 가능한 현재 게임 챔피언 구성 | 유효한 Riot API 키, 게임 진행 중 |
 | GET \`/api/stats/champion?key=523&role=ADC&region=kr\` | 별도 데이터셋에서 검증된 통계 로드 | 집계 데이터 KV 바인딩 |
 
@@ -72,3 +72,57 @@ Cloudflare KV를 바인딩하면 key는 \`champion:kr:ADC:523\` 같은 형식이
 - https://developer.riotgames.com/docs/lol
 - https://developer.riotgames.com/docs/portal
 - https://support-developer.riotgames.com/hc/en-us/articles/22801670382739-RSO-Riot-Sign-On
+
+
+## 전적 API 연결 실전 순서
+
+1. https://developer.riotgames.com 에서 계정으로 로그인하여 개발용 API 키를 확보한다. **개발 키는 약 24시간 후 만료되어 테스트에만 적합**하다.
+2. 로컬 터미널에서 저장소를 클론하거나 GitHub ZIP을 내려받아 \`worker\` 폴더로 이동한다.
+3. Cloudflare에 로그인하고 다음 명령을 실행한다.
+
+\`\`\`bash
+cd worker
+npx wrangler login
+npx wrangler deploy
+npx wrangler secret put RIOT_API_KEY
+\`\`\`
+
+4. 위 명령은 Secret 값을 **터미널에서 직접 입력**하게 한다. 이를 GitHub, 브라우저, ChatGPT 대화 또는 \`wrangler.toml\`에 붙여넣지 마.
+5. 출력된 Worker URL에 다음 엔드포인트로 연결을 확인한다.
+
+\`\`\`bash
+curl "https://<your-worker>.workers.dev/api/health"
+# Expected:
+# {"status":"ready","service":"League Lab API","riotConfigured":true}
+\`\`\`
+
+6. LEAGUE LAB 사이트에서 **전적·인게임 → API 연결 설정**을 열고 Worker URL **주소만** 넣는다. **API 상태 확인**을 눌러 Secret 등록 여부를 확인한 뒤 Riot ID를 검색한다.
+
+예시 요청 — 실제 Riot ID로 바꿔서 사용:
+
+\`\`\`text
+GET /api/riot/player?name=Sample&tag=KR1&region=kr&queue=solo&count=10
+GET /api/riot/player?name=Sample&tag=KR1&region=kr&queue=flex&count=5
+GET /api/riot/live?name=Sample&tag=KR1&region=kr
+\`\`\`
+
+최신 **LEAGUE-V4 /entries/by-puuid/{puuid}**를 사용하며 구형 \`summoner.id\` 필드가 없더라도 랭크 조회가 된다. 전적 목록은 MATCH-V5, 현재 게임은 SPECTATOR-V5로 조회한다.
+
+API 상태 조회는 **Secret이 존재하는지**만 알려준다. 실제 유효 여부는 전적 검색 결과로 판단해. Riot 서버가 403을 반환하면 키 만료·허용되지 않는 애플리케이션·권한 문제를 확인해야 해. **공개 운영용으로 개발 키를 사용하지 말 것.**
+
+### 자동화된 테스트
+
+리포지토리 루트에서 실행:
+
+\`\`\`bash
+node worker/tests/riot-api.smoke.cjs
+\`\`\`
+
+이 테스트는 **실제 Riot API를 호출하지 않고** 테스트 응답을 사용한다. PUUID로 티어·전적을 찾는 흐름, KDA 요약, 게임 미진행, API 키 누락, 잘못된 입력과 CORS 검사를 검증한다.
+
+### 운영 전에 체크할 항목
+
+- Riot Production API 신청 및 승인. 공개 서비스에 개발 키를 사용하지 말 것.
+- Cloudflare WAF와 요율 제한(Rate Limiting) 실제 설정. Origin 화이트리스트만으로는 남용을 막지 못함.
+- 데이터 저장 및 개인정보 정책, 서비스 약관, 데이터 표본 기준 점검.
+- 계정 로그인(RSO)은 이 Worker에 아직 없음. Riot에서 Production 및 RSO 승인을 받은 후 별도 개발.
