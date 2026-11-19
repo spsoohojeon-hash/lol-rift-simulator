@@ -283,7 +283,10 @@ function renderProfile(data,kind){
   root.append(el("h2","","진행 중인 게임"));
   if(!data.active){root.append(el("p","sub","현재 진행 중인 게임이 확인되지 않았어."));return;}
   root.append(makeLine("게임 모드 "+(data.gameMode||"—")+" · 소환사별 상세 통계는 제공하지 않아."));
-  for(const team of ["blue","red"]){const ps=(data.players||[]).filter(p=>p.team===team);root.append(el("h3","",team==="blue"?"블루 팀":"레드 팀"));root.append(makeLine(ps.map(x=>x.championName||"챔피언 #"+x.championId).join(" · ")||"정보 없음"));}
+  for(const team of ["blue","red"]){const ps=(data.players||[]).filter(p=>p.team===team);root.append(el("h3","",team==="blue"?"블루 팀":"레드 팀"));root.append(makeLine(ps.map(x=>{
+   const c=core.champions().find(c=>String(c.key)===String(x.championId));
+   return c?.name||"챔피언 #"+x.championId;
+  }).join(" · ")||"정보 없음"));}
   return;
  }
  const p=data.player||{};root.append(el("h2","",(p.gameName||"플레이어")+"#"+(p.tagLine||"")));
@@ -303,7 +306,24 @@ function renderProfile(data,kind){
  root.append(el("h3","",data.queue==="flex"?"최근 자유 랭크 경기":"최근 솔로 랭크 경기"));
  if(!data.matches?.length){root.append(el("p","sub","표시할 최근 랭크 경기 데이터가 없어."));return;}
  for(const m of data.matches){const card=el("div","portal-match "+(m.win?"win":"loss"));
-  card.append(el("strong","",m.win?"승리":"패배"),makeLine((m.championName||"챔피언 #"+m.championId)+" · "+m.kills+"/"+m.deaths+"/"+m.assists+" · "+Math.floor(m.durationSeconds/60)+"분 · "+(m.mode||"랭크")),makeLine("CS "+(m.cs??"—")+" · 포지션 "+(m.position||"—")));
+  const champ=core.champions().find(c=>String(c.key)===String(m.championId));
+  const line=el("div","portal-match-head");
+  if(champ)line.append(image(core.icon(champ.id),champ.name));
+  const info=el("div");
+  info.append(el("strong","",m.win?"승리":"패배"));
+  info.append(makeLine((champ?.name||m.championName||"챔피언 #"+m.championId)+" · "+m.kills+"/"+m.deaths+"/"+m.assists+" · "+Math.floor(m.durationSeconds/60)+"분 · "+(m.mode||"랭크")));
+  info.append(makeLine("CS "+(m.cs??"—")+" · 포지션 "+(m.position||"—")+" · 골드 "+(m.goldEarned??"—")));
+  info.append(makeLine("챔피언 피해량 "+(m.totalDamageDealtToChampions??"—")+" · 시야 점수 "+(m.visionScore??"—")));
+  line.append(info);card.append(line);
+  if(Array.isArray(m.items)&&m.items.length){
+   const gears=el("div","portal-match-items");
+   const v=getVersion();
+   m.items.forEach(id=>{
+    if(!v)return;
+    gears.append(image("https://ddragon.leagueoflegends.com/cdn/"+v+"/img/item/"+id+".png","아이템 "+id));
+   });
+   card.append(gears);
+  }
   root.append(card);}
 }
 async function searchProfile(kind){
