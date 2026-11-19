@@ -111,11 +111,14 @@
  <label>Riot ID <input id="portalRiotName" placeholder="게임 이름" autocomplete="off" maxlength="32"></label>
  <label>태그 <input id="portalRiotTag" placeholder="KR1" autocomplete="off" maxlength="12"></label>
  <label>서버 <select id="portalRiotRegion"><option value="kr">한국 (KR)</option><option value="jp1">일본 (JP)</option><option value="na1">북미 (NA)</option><option value="euw1">서유럽 (EUW)</option></select></label>
+ <label>랭크 종류 <select id="portalQueue"><option value="solo">솔로 랭크</option><option value="flex">자유 랭크</option></select></label>
+ <label>검색 범위 <select id="portalCount"><option value="5">최근 5경기</option><option value="10" selected>최근 10경기</option></select></label>
  </div>
  <div class="toolbar" style="margin-top:12px">
  <button class="primary" id="portalSearchMatches">최근 전적 검색</button>
  <button id="portalSearchLive">현재 게임 확인</button>
  <button id="portalApiSettings">API 연결 설정</button>
+ <button id="portalTestApi" title="Worker 연결 및 Riot API 키 등록 상태 확인">API 상태 확인</button>
  <button disabled title="Riot Production API 및 RSO 클라이언트 승인 후 활성화">라이엇 계정 로그인 · 승인 대기</button></div>
  <div id="portalApiConfig" hidden><p class="help">GitHub Pages와 별도로 배포한 Cloudflare Worker 주소만 입력해. API 키는 이 웹페이지에 절대 넣지 마.</p>
  <label class="sub">Worker API 주소 <input id="portalWorkerUrl" placeholder="https://your-worker.your-domain.workers.dev" style="min-width:min(100%,430px)"></label><button id="portalSaveWorker">주소 저장</button></div>
