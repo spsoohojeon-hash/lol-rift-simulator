@@ -4,7 +4,7 @@
  * NO Riot API keys or RSO secrets must be committed here.
  * Endpoints:
  * GET /api/health
- * GET /api/riot/player?name=<gameName>&tag=<tagLine>&region=kr
+ * GET /api/riot/player?name=<gameName>&tag=<tagLine>&region=kr&queue=solo&count=10
  * GET /api/riot/live?name=<gameName>&tag=<tagLine>&region=kr
  * GET /api/stats/champion?key=<championKey>&role=TOP&region=kr
  *
@@ -51,33 +51,58 @@ async function getAccount(name,tag,shard,key){
  const uri="https://"+shard.regional+".api.riotgames.com/riot/account/v1/accounts/by-riot-id/"+enc(name)+"/"+enc(tag);
  return await riotFetch(uri,key);
 }
-async function getPlayer(name,tag,shard,key){
+async function getPlayer(name,tag,shard,key,queue,count){
  const account=await getAccount(name,tag,shard,key);
  if(!account?.puuid)return {found:false};
- const puuid=account.puuid,platform="https://"+shard.platform+".api.riotgames.com",region="https://"+shard.regional+".api.riotgames.com";
- const getSummoner=riotFetch(platform+"/lol/summoner/v4/summoners/by-puuid/"+enc(puuid),key).catch(()=>null);
- const getIds=riotFetch(region+"/lol/match/v5/matches/by-puuid/"+enc(puuid)+"/ids?start=0&count=5&queue=420",key).catch(err=>{throw err;});
- const [summoner,ids]=await Promise.all([getSummoner,getIds]);
- let rank=[];
- if(summoner?.id){
-  const ranks=await riotFetch(platform+"/lol/league/v4/entries/by-summoner/"+enc(summoner.id),key).catch(()=>[]);
-  rank=(Array.isArray(ranks)?ranks:[]).filter(x=>x.queueType==="RANKED_SOLO_5x5"||x.queueType==="RANKED_FLEX_SR")
-    .map(x=>({queueType:x.queueType,tier:x.tier,rank:x.rank,leaguePoints:x.leaguePoints,wins:x.wins,losses:x.losses}));
- }
+ const puuid=account.puuid;
+ const platform="https://"+shard.platform+".api.riotgames.com";
+ const regional="https://"+shard.regional+".api.riotgames.com";
+ // Riot's 2026 LEAGUE-V4 endpoint supports direct PUUID lookups.
+ // Do NOT depend on Summoner-V4 returning an encrypted summoner ID.
+ const [summoner,rankData,ids]=await Promise.all([
+  riotFetch(platform+"/lol/summoner/v4/summoners/by-puuid/"+enc(puuid),key).catch(()=>null),
+  riotFetch(platform+"/lol/league/v4/entries/by-puuid/"+enc(puuid),key),
+  riotFetch(regional+"/lol/match/v5/matches/by-puuid/"+enc(puuid)+
+    "/ids?start=0&count="+count+"&queue="+queue,key)
+ ]);
+ const rank=(Array.isArray(rankData)?rankData:[])
+  .filter(x=>["RANKED_SOLO_5x5","RANKED_FLEX_SR"].includes(x.queueType))
+  .map(x=>({
+    queueType:x.queueType,tier:x.tier||"UNRANKED",rank:x.rank||"",
+    leaguePoints:Number(x.leaguePoints)||0,wins:Number(x.wins)||0,losses:Number(x.losses)||0
+  }));
  const matches=[];
- for(const matchId of (Array.isArray(ids)?ids.slice(0,5):[])){
+ // Keep a small sequential request budget for prototype/dev keys.
+ for(const matchId of (Array.isArray(ids)?ids.slice(0,count):[])){
   if(!/^[A-Z0-9_]{6,40}$/.test(matchId))continue;
-  const m=await riotFetch(region+"/lol/match/v5/matches/"+enc(matchId),key);
-  const p=m?.info?.participants?.find(x=>x.puuid===puuid);
-  if(!p||m?.info?.queueId!==420)continue; // Do not leak custom-queue match details.
+  const m=await riotFetch(regional+"/lol/match/v5/matches/"+enc(matchId),key);
+  if(!m?.info||m.info.queueId!==queue)continue;
+  const p=(m.info.participants||[]).find(x=>x.puuid===puuid);
+  if(!p)continue;
   matches.push({
-   id:matchId,championId:p.championId,championName:p.championName,win:!!p.win,
-   kills:p.kills,deaths:p.deaths,assists:p.assists,cs:(p.totalMinionsKilled||0)+(p.neutralMinionsKilled||0),
-   durationSeconds:m.info.gameDuration||0,position:p.teamPosition||p.individualPosition||"",
-   mode:"랭크 솔로",gameStartTimestamp:m.info.gameStartTimestamp||null
+   id:matchId,championId:p.championId,championName:p.championName,
+   win:!!p.win,kills:Number(p.kills)||0,deaths:Number(p.deaths)||0,
+   assists:Number(p.assists)||0,
+   cs:(Number(p.totalMinionsKilled)||0)+(Number(p.neutralMinionsKilled)||0),
+   durationSeconds:Number(m.info.gameDuration)||0,
+   position:p.teamPosition||p.individualPosition||"",
+   mode:queue===420?"랭크 솔로":"자유 랭크",
+   gameStartTimestamp:m.info.gameStartTimestamp||null
   });
  }
- return {found:true,player:{gameName:account.gameName,tagLine:account.tagLine,level:summoner?.summonerLevel??null,rank},matches};
+ const wins=matches.filter(x=>x.win).length;
+ const total=matches.length;
+ return {
+  found:true,
+  player:{gameName:account.gameName,tagLine:account.tagLine,level:summoner?.summonerLevel??null,rank},
+  queue:queue===420?"solo":"flex",
+  summary:{games:total,wins,losses:total-wins,winRate:total?wins/total:null,
+   kills:total?+(matches.reduce((a,x)=>a+x.kills,0)/total).toFixed(2):null,
+   deaths:total?+(matches.reduce((a,x)=>a+x.deaths,0)/total).toFixed(2):null,
+   assists:total?+(matches.reduce((a,x)=>a+x.assists,0)/total).toFixed(2):null
+  },
+  matches
+ };
 }
 async function getLive(name,tag,shard,key){
  const account=await getAccount(name,tag,shard,key);
@@ -120,7 +145,14 @@ export default {
   try{
    const path=url.pathname;
    const key=env.RIOT_API_KEY;
-   const data=path.endsWith("/live")?await getLive(name,tag,shard,key):await getPlayer(name,tag,shard,key);
+   const q=(url.searchParams.get("queue")||"solo").toLowerCase();
+   const countRaw=url.searchParams.get("count")||"10";
+   const count=/^(5|10)$/.test(countRaw)?Number(countRaw):null;
+   if(path.endsWith("/player")&&(!["solo","flex"].includes(q)||!count))
+    return err(400,"랭크 종류(solo/flex) 또는 조회 개수(5/10)를 확인해.",origin);
+   const data=path.endsWith("/live")
+    ?await getLive(name,tag,shard,key)
+    :await getPlayer(name,tag,shard,key,q==="solo"?420:440,count);
    if(data.found===false)return err(404,"Riot ID를 찾을 수 없어.",origin);
    return json(data,200,origin,path.endsWith("/live")?10:30);
   }catch(e){return err(e.status||502,e.status===429||e.status===503?e.message:"Riot API 조회 중 오류가 발생했어.",origin);}
