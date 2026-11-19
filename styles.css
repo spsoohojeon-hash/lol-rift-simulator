@@ -169,3 +169,14 @@ header{border-bottom:1px solid #253957;padding:20px 0;margin-bottom:18px}.head-r
 .damage-ability-line .sub{line-height:1.7;margin:5px 0}
 @media(max-width:1050px){.damage-layout{grid-template-columns:1fr}.damage-stat-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:600px){.damage-stat-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.damage-item-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}.damage-equipped{grid-template-columns:repeat(2,minmax(0,1fr))}.damage-rank-name{max-width:55%}}
+
+
+/* v0.8 Riot match history */
+.portal-history-summary{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:13px 16px;border:1px solid #456b83;background:#122c3b;border-radius:10px;margin:15px 0}
+.portal-history-summary strong{font-size:20px;color:#a4dafa}
+.portal-match-head{display:flex;align-items:center;gap:12px}
+.portal-match-head>img{width:52px;height:52px;border-radius:10px;flex-shrink:0;object-fit:cover;border:1px solid #557792}
+.portal-match-head>div{min-width:0}
+.portal-match-items{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;margin-left:64px}
+.portal-match-items img{width:31px;height:31px;border-radius:5px;border:1px solid #59738b}
+@media(max-width:600px){.portal-history-summary{gap:9px}.portal-match-items{margin-left:0}}
