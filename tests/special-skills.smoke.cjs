@@ -35,7 +35,7 @@ const fixture={id:"Aphelios",stats:{hp:600,hpperlevel:102,attackdamage:55,attack
 const base=c.statBuild(fixture,18,"ADC",false,[],{},{},bare);
 const full=c.statBuild(fixture,18,"ADC",false,[],{},{},{Q:6,W:6,E:6,R:3});
 assert(Math.abs(full.ad-base.ad-24)<1e-7);
-assert.equal(full.specialRankBonus.attackSpeedPct,45);
+assert.equal(full.specialRankBonus.attackSpeedPct,54);
 assert.equal(full.manualPen.armorFlat,27);
 const withPen=c.statBuild(fixture,18,"ADC",false,[],{},{lethality:10},{Q:6,W:6,E:6,R:3});
 assert.equal(withPen.manualPen.armorFlat,37);
