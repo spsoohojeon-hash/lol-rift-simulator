@@ -148,6 +148,17 @@ BO3/BO5 20단계, 전체 시리즈 피어리스 중복 방지, 5라인 중복 �
 - 출처: [Riot Data Dragon 문서](https://developer.riotgames.com/docs/lol), [Riot 26.22 패치 노트](https://www.leagueoflegends.com/en-us/news/game-updates/league-of-legends-patch-26-22-notes/), [Riot 26.1 역할 퀘스트](https://www.leagueoflegends.com/en-us/news/game-updates/patch-26-1-notes/), [Riot 26.11 퀘스트 조정](https://www.leagueoflegends.com/en-ph/news/game-updates/league-of-legends-patch-26-11-notes/)
 - 테스트: \`node tests/damage.smoke.cjs\`
 
+## v0.8 — Riot API 전적·인게임 연동 (NEW)
+
+- **Riot ID → PUUID → 티어·LP·전적**을 공식 API로 조회할 수 있도록 Cloudflare Worker 코드를 업데이트했어. 라이엇 서버에 대한 실제 요청은 Worker에서만 실행되며 API 키가 브라우저로 노출되지 않아.
+- 2026 API 변경에 맞춰 랭크 조회를 **LEAGUE-V4 \`/entries/by-puuid/{puuid}\`**로 수정. 구형 \`summoner.id\` 필드 의존 제거.
+- 전적 검색에서 **솔로 랭크 / 자유 랭크**, **최근 5 / 10경기** 선택, 최근 승률·평균 KDA, 챔피언 이미지, 아이템, 골드, CS, 시야 점수, 피해량 표시를 준비했어.
+- 현재 게임 검색은 Spectator-V5의 공개 가능한 챔피언 구성만 보여줘. 숨겨진 정보, 상대방 실시간 전적 분석 등은 제공하지 않아.
+- **API 상태 확인** 버튼은 Worker의 연결·Secret 존재 여부를 확인해. Secret이 유효한지는 Riot ID 조회로 추가 검증해야 해.
+- Mock integration test: \`node worker/tests/riot-api.smoke.cjs\`. Riot 키 없이도 PUUID·랭크·전적·현재게임·CORS 에러 등을 모의 검증할 수 있어.
+- **실제 Riot 키와 Cloudflare 배포는 아직 미완료**. 사용자 Cloudflare 계정에서 설정해야 해. 정확한 실행 단계는 [worker/README.md](worker/README.md)에 있어.
+- 공개 서비스를 운영하려면 Riot Production API 승인, 개인정보·서비스 정책, Cloudflare 요율 제한이 필요해. 개발 키는 24시간 만료되는 테스트 전용이야.
+
 ## 현재 한계 및 다음 과제
 - 2D 도식 지형이며 실제 협곡 충돌·시야·거리 및 패치 규칙을 그대로 복제한 것이 아님
 - 챔피언별 Q/W/E/R, 소환사 주문, 아이템, 룬, 투사체 및 전체 CC 세부 상호작용 미구현
